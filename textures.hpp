@@ -15,17 +15,17 @@ static inline Texture2D TextureSlotarrow;
 static inline Texture2D TextureStone;
 
 static void LoadAll() {
-TextureAir = LoadTexture("AirTexture.png");
-TextureBark = LoadTexture("BarkTexture.png");
-TextureDirt = LoadTexture("DirtTexture.png");
-TextureGrass = LoadTexture("GrassTexture.png");
-TextureHeart0 = LoadTexture("heart0.png");
-TextureHeart1 = LoadTexture("heart1.png");
-TextureLeafs = LoadTexture("LeafsTexture.png");
-TexturePlayer = LoadTexture("PlayerTexture.png");
-TextureSlot = LoadTexture("Slot.png");
-TextureSlotarrow = LoadTexture("SlotArrowTexture.png");
-TextureStone = LoadTexture("StoneTexture.png");
+TextureAir = LoadTexture("imgs/AirTexture.png");
+TextureBark = LoadTexture("imgs/BarkTexture.png");
+TextureDirt = LoadTexture("imgs/DirtTexture.png");
+TextureGrass = LoadTexture("imgs/GrassTexture.png");
+TextureHeart0 = LoadTexture("imgs/heart0.png");
+TextureHeart1 = LoadTexture("imgs/heart1.png");
+TextureLeafs = LoadTexture("imgs/LeafsTexture.png");
+TexturePlayer = LoadTexture("imgs/PlayerTexture.png");
+TextureSlot = LoadTexture("imgs/Slot.png");
+TextureSlotarrow = LoadTexture("imgs/SlotArrowTexture.png");
+TextureStone = LoadTexture("imgs/StoneTexture.png");
 
 }
 static void UnloadAll() {

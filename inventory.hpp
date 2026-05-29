@@ -14,9 +14,9 @@ struct InventorySpace
 class Inventory
 {
 public:
-  InventorySpace inventory[5];
+  static const int size = 5;
+  InventorySpace inventory[size];
   SlotIndex selected = 0;
-
   InventorySpace at(int n)
   {
     if(n>5 || n<0)

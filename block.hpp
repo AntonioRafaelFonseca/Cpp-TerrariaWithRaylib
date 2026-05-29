@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <iostream>
+#include <iterator>
 #include "raylib.h"
 #include "perlin.hpp"
 #include "inventory.hpp"
@@ -210,11 +211,11 @@ class Blocks
   }
   int getInventoryIndexByType(BlockType type, Inventory inventory)
   {
-    for (int i=0;i<std::size(inventory.inventory);i++)
+    for (size_t i=0; i<inventory.size; i++)
     {
       if(inventory.at(i).Item.type == type && !inventory.inventory[i].full) return i;
     }
-    for (int i=0;i<std::size(inventory.inventory);i++)
+    for (size_t i=0; i<inventory.size; i++)
     {
       if(inventory.at(i).Item.type == BlockType::NONE) return i;
     }

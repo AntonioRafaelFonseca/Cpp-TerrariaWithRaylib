@@ -16,7 +16,7 @@ vector2 randomGradient(int ix, int iy) {
     unsigned a = ix, b = iy;
     a *= 3284157443;
  
-    b ^= a << s | a >> w - s;
+    b ^= a << s | a >> (w - s);
     b *= 1911520717;
  
     a ^= b << s | b >> w - s;

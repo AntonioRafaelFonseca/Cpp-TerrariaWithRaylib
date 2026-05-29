@@ -10,7 +10,7 @@ for i in os.listdir("imgs/"):
 arr.append("\n\nstatic void LoadAll() {\n")
 for i in os.listdir("imgs/"):
   fileName = "Texture" + i.capitalize().replace("Texture", "").replace("texture", "").replace(".png", "")
-  arr.append(f"{fileName} = LoadTexture(\"{i}\");\n")
+  arr.append(f"{fileName} = LoadTexture(\"imgs/{i}\");\n")
 for i in os.listdir("imgs/"):
   fileName = "Texture" + i.capitalize().replace("Texture", "").replace("texture", "").replace(".png", "")
 arr.append("\n}")
