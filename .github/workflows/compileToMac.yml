@@ -1,0 +1,32 @@
+name: Compilar para macOS
+
+on: [push]
+
+jobs:
+  build-mac:
+    runs-on: macos-latest
+
+    steps:
+    - name: Descarregar o código do repositório
+      uses: actions/checkout@v4
+
+    - name: Instalar a Raylib no Mac
+      run: |
+        brew update
+        brew install raylib
+
+    - name: Compilar o Jogo
+      run: |
+        g++ -O3 main.cpp \
+        -lraylib \
+        -framework OpenGL \
+        -framework Cocoa \
+        -framework IOKit \
+        -framework CoreVideo \
+        -o mac/meu_jogo_mac
+
+    - name: Disponibilizar o Executável para Download
+      uses: actions/upload-artifact@v4
+      with:
+        name: TerrariaDoToinoMacOS
+        path: mac/meu_jogo_mac
