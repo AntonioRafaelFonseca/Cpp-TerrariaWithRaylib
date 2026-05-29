@@ -18,6 +18,8 @@ jobs:
     - name: Compilar o Jogo
       run: |
         g++ -O3 main.cpp \
+        -I/opt/homebrew/include \
+        -L/opt/homebrew/lib \
         -lraylib \
         -framework OpenGL \
         -framework Cocoa \
