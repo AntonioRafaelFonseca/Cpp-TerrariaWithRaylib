@@ -28,7 +28,7 @@ class Blocks
           std::vector<Block> vls;
           for (int x = 0; x < width; x++)
           {
-              vls.push_back(Block {.type = BlockType::AIR, .LightSource = LightSource::NATURAL});
+              vls.push_back(Block {.type = BlockType::AIR, .LightSource = LightSourceType::NATURAL});
           }
           blocks.push_back(vls);
       }
@@ -50,12 +50,12 @@ class Blocks
             if(rand()%50 == 0)
             {
               blocks.at(y).at(x).type = BlockType::STONE;
-              blocks.at(y).at(x).LightSource= LightSource::NOLIGHT;
+              blocks.at(y).at(x).LightSource= LightSourceType::NOLIGHT;
             }
             else
             {
               blocks.at(y).at(x).type = BlockType::GRASS;
-              blocks.at(y).at(x).LightSource= LightSource::NOLIGHT;
+              blocks.at(y).at(x).LightSource= LightSourceType::NOLIGHT;
             }
           }
       }

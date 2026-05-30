@@ -12,7 +12,7 @@ enum BlockType
   BARK,
 };
 
-enum LightSource
+enum LightSourceType
 {
   NOLIGHT,
   NATURAL,
@@ -22,6 +22,6 @@ enum LightSource
 struct Block
 {
   BlockType type;
-  LightSource LightSource = NOLIGHT;
+  LightSourceType LightSource = NOLIGHT;
   unsigned char Brightness = 50;
 };
