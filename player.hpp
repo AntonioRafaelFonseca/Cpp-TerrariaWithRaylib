@@ -12,7 +12,7 @@ public:
   int life = 10;
   Inventory inventory;
   
-  void update(std::vector<std::vector<Block>> b);
+  void update(std::vector<std::vector<Block>> b, unsigned char& pb);
 
 
 private:

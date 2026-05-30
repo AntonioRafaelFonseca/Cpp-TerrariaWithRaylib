@@ -21,7 +21,7 @@ bool inBounds(int n, int min, int max)
   return false;
 }
 
-void drawPlayer(Player& p)
+void drawPlayer(Player& p, unsigned char pb)
 {
   for (int i=0;i<p.life;i++)
   {
@@ -46,61 +46,63 @@ void drawPlayer(Player& p)
     }
     DrawText(std::to_string(p.inventory.inventory[i].amount).c_str(), (float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height, 12, RAYWHITE);
   }
-  DrawTexture(Textures::TexturePlayer, 250, 300, WHITE);
+  DrawTexture(Textures::TexturePlayer, 250, 300, {pb, pb, pb, 255});
 }
 
-void Player::update(std::vector<std::vector<Block>> b)
+void Player::update(std::vector<std::vector<Block>> b, unsigned char& pb)
 {
-    float speed = 3.0f;
-    float Jspeed = -15.0f;
+  float speed = 3.0f;
+  float Jspeed = -15.0f;
+  
+  int playerWorldX = this->x + 250;
+  int playerWorldY = this->y + 300;
+  int xindex = (playerWorldX + 16) / 32;
+  int yindex = (playerWorldY) / 32;
 
-    int playerWorldX = this->x + 250;
-    int playerWorldY = this->y + 300;
-    int xindex = (playerWorldX + 16) / 32;
-    int yindex = (playerWorldY) / 32;
-
-    bool contact = false;
-    if (inBounds(xindex, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
-    {
-        if (b.at(yindex+1).at(xindex).type != AIR)
-        {
-            contact = true;
-            this->y = ((yindex + 1) * 32) - 300 - 32;
-        }
-    }
-
-    yindex = (playerWorldY+3) / 32;
-    xindex = (playerWorldX+32) / 32;
-    if (IsKeyDown(KEY_A))
-    {
-      if(inBounds(xindex, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
+  pb = b.at(yindex).at(xindex).Brightness;
+  
+  bool contact = false;
+  if (inBounds(xindex, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
+  {
+      if (b.at(yindex+1).at(xindex).type != AIR)
       {
-        if (b.at(yindex).at(xindex-1).type == AIR) this->x -= speed;
+          contact = true;
+          this->y = ((yindex + 1) * 32) - 300 - 32;
       }
-    }
-    
-    xindex = (playerWorldX) / 32;
-    if (IsKeyDown(KEY_D))
+  }
+
+  yindex = (playerWorldY+3) / 32;
+  xindex = (playerWorldX+32) / 32;
+  if (IsKeyDown(KEY_A))
+  {
+    if(inBounds(xindex, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
     {
-      if(inBounds(xindex + 1, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
-      {
-        if (b.at(yindex).at(xindex + 1).type == AIR) this->x += speed;
-      }
+      if (b.at(yindex).at(xindex-1).type == AIR) this->x -= speed;
     }
-    
-    updateY(contact);
-    if (IsKeyPressed(KEY_W) && contact)
+  }
+  
+  xindex = (playerWorldX) / 32;
+  if (IsKeyDown(KEY_D))
+  {
+    if(inBounds(xindex + 1, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
     {
-      this->vy = Jspeed;
-      this->y-=0.1;
+      if (b.at(yindex).at(xindex + 1).type == AIR) this->x += speed;
     }
-    yindex = (playerWorldY) / 32;
-    if(b.at(yindex).at(xindex).type != AIR)
-    {
-      contact = false;
-      this->vy = 5;
-      this->y += 0.1;
-    }
+  }
+  
+  updateY(contact);
+  if (IsKeyPressed(KEY_W) && contact)
+  {
+    this->vy = Jspeed;
+    this->y-=0.1;
+  }
+  yindex = (playerWorldY) / 32;
+  if(b.at(yindex).at(xindex).type != AIR)
+  {
+    contact = false;
+    this->vy = 5;
+    this->y += 0.1;
+  }
 }
 
 
@@ -115,6 +117,7 @@ int main()
   b.setup();
   Player ClientPlayer;
   SetTargetFPS(30);
+  unsigned char pb;
   while (!WindowShouldClose())
   {
     BeginDrawing();
@@ -122,10 +125,10 @@ int main()
 
     b.update(ClientPlayer.x, ClientPlayer.y, ClientPlayer.inventory);
     b.updateBlocks(ClientPlayer.x, ClientPlayer.y);
-    ClientPlayer.update(b.blocks);
+    ClientPlayer.update(b.blocks, pb);
 
     b.draw(ClientPlayer.x, ClientPlayer.y);
-    drawPlayer(ClientPlayer);
+    drawPlayer(ClientPlayer, pb);
     EndDrawing();
   }
   Textures::UnloadAll();

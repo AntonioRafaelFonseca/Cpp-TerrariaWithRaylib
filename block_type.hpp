@@ -7,12 +7,21 @@ enum BlockType
   AIR,
   GRASS,
   DIRT,
-  STONE
+  STONE,
+  LEAF,
+  BARK,
 };
 
+enum LightSource
+{
+  NOLIGHT,
+  NATURAL,
+  TORCH
+};
 
 struct Block
 {
   BlockType type;
+  LightSource LightSource = NOLIGHT;
   unsigned char Brightness = 50;
 };

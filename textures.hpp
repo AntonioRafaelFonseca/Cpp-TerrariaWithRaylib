@@ -13,6 +13,7 @@ static inline Texture2D TexturePlayer;
 static inline Texture2D TextureSlot;
 static inline Texture2D TextureSlotarrow;
 static inline Texture2D TextureStone;
+static inline Texture2D TextureTorch;
 
 static void LoadAll() {
 TextureAir = LoadTexture("imgs/AirTexture.png");
@@ -26,6 +27,7 @@ TexturePlayer = LoadTexture("imgs/PlayerTexture.png");
 TextureSlot = LoadTexture("imgs/Slot.png");
 TextureSlotarrow = LoadTexture("imgs/SlotArrowTexture.png");
 TextureStone = LoadTexture("imgs/StoneTexture.png");
+TextureTorch = LoadTexture("imgs/TorchTexture.png");
 
 }
 static void UnloadAll() {
@@ -40,5 +42,6 @@ UnloadTexture(TexturePlayer);
 UnloadTexture(TextureSlot);
 UnloadTexture(TextureSlotarrow);
 UnloadTexture(TextureStone);
+UnloadTexture(TextureTorch);
 }
 };

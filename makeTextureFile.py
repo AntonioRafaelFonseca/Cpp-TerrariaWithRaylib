@@ -1,5 +1,5 @@
 import os
-
+print("start make file")
 arr = []
 
 arr.append('#pragma once\n#include "raylib.h"\n')
@@ -23,3 +23,5 @@ arr.append("\n}\n};\n")
 with open("textures.hpp", "w") as f:
   for i in arr:
     f.write(i)
+
+print("start compile")

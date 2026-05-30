@@ -28,7 +28,7 @@ class Blocks
           std::vector<Block> vls;
           for (int x = 0; x < width; x++)
           {
-              vls.push_back(Block {.type = BlockType::AIR});
+              vls.push_back(Block {.type = BlockType::AIR, .LightSource = LightSource::NATURAL});
           }
           blocks.push_back(vls);
       }
@@ -50,14 +50,15 @@ class Blocks
             if(rand()%50 == 0)
             {
               blocks.at(y).at(x).type = BlockType::STONE;
+              blocks.at(y).at(x).LightSource= LightSource::NOLIGHT;
             }
             else
             {
               blocks.at(y).at(x).type = BlockType::GRASS;
+              blocks.at(y).at(x).LightSource= LightSource::NOLIGHT;
             }
           }
       }
-      updateBlocks(0, 0);
       int surr[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
       for(int y=0;y<height;y++)
       {
@@ -73,6 +74,7 @@ class Blocks
           }
         }
       }
+      generateTrees();
     updateBrightness();
   }
   void draw(int px, int py)
@@ -101,18 +103,38 @@ class Blocks
         {
           DrawTexture(Textures::TextureStone, Bx, By, {b, b, b, 255});
         }
+        else if (blocks.at(y).at(x).type == LEAF)
+        {
+          DrawTexture(Textures::TextureLeafs, Bx, By, {b, b, b, 255});
+        }
+        else if (blocks.at(y).at(x).type == BARK)
+        {
+          DrawTexture(Textures::TextureBark, Bx, By, {b, b, b, 255});
+        }
         else
         {
           std::cerr << "invalid type at blocks[" << y << "][" << x << "]" << "type = " << blocks.at(y).at(x).type;
           exit(1);
         }
+        if (blocks.at(y).at(x).LightSource == TORCH)
+        {
+          DrawTexture(Textures::TextureTorch, Bx+4, By+4, WHITE);
+        }
+        else if (blocks.at(y).at(x).LightSource != NOLIGHT && blocks.at(y).at(x).LightSource != NATURAL)
+        {
+          std::cerr << "invalid Ligth Src at blocks[" << y << "][" << x << "]" << "type = " << blocks.at(y).at(x).LightSource;
+          exit(1);
+        }
       }
     }
   }
+
   void update(int px, int py, Inventory& inv)
   {
     int mouseX = GetMouseX();
     int mouseY = GetMouseY();
+    bool spacePressed = IsKeyDown(KEY_SPACE);
+
     bool mousePressedLeft = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
     bool mousePressedRight = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
 
@@ -120,6 +142,15 @@ class Blocks
     {
       int xindex = (int)(mouseX+px) / 32;
       int yindex = (int)(mouseY+py) / 32;
+
+      if (spacePressed)
+      {
+        if(blocks.at(yindex).at(xindex).type == AIR)
+        {
+          std::cout << "blocks line 150";
+          blocks.at(yindex).at(xindex).LightSource = TORCH;
+        }
+      }
 
       try
       {
@@ -167,7 +198,7 @@ class Blocks
     if(IsKeyPressed(KEY_LEFT)) inv.selected--;
     if(IsKeyPressed(KEY_RIGHT)) inv.selected++;
   }
-  void updateBlocks(int px, int py)
+  void updateBlocks(int px=0, int py=0)
   {
     for(int y=0;y<blocks.size()-1;y++)
     {
@@ -191,24 +222,44 @@ class Blocks
   }
   void updateBrightness()
   {
-    int surr[8][2] = {{-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
-    for(int i = 0;i<blocks.size();i++)
+    int width = blocks.at(0).size();
+    int height = blocks.size();
+
+    int surr[8][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
+    for (int y=0; y < height; y++)
+    {
+      for (int x = 0; x < width; x++)
       {
-        for(int j = 0;j<blocks.at(0).size();j++)
+        int n = 0;
+        int sum = 0;
+        int maxB = 0;
+        bool foundL = false;
+        for(auto s : surr)
         {
-          if (blocks.at(i).at(j).type == AIR)
+          if(!inbounds(x+s[0], 0, width) || !inbounds(y+s[1], 0, height)) continue;
+
+          if(blocks.at(y+s[1]).at(x+s[0]).LightSource == NATURAL)
           {
-            blocks.at(i).at(j).Brightness = 255;
-            for(int a=0;a<8;a++)
+            blocks.at(y).at(x).Brightness = 255;
+            foundL = true;
+            break;
+          }
+          else
+          {
+            if(blocks.at(y+s[1]).at(x+s[0]).Brightness > maxB)
             {
-              if(!inbounds(surr[a][0]+i, 0, blocks.size()) || !inbounds(surr[a][1]+j, 0, blocks.at(0).size())) continue;
-              if(blocks.at(surr[a][0]+i).at(surr[a][1]+j).type == AIR) continue;
-              blocks.at(surr[a][0]+i).at(surr[a][1]+j).Brightness = 255;
+              maxB = blocks.at(y+s[1]).at(x+s[0]).Brightness;
             }
+            sum += blocks.at(y+s[1]).at(x+s[0]).Brightness;
+            n++;
           }
         }
+        
+        if(!foundL) blocks.at(y).at(x).Brightness = (unsigned char)(maxB-std::min(255, sum/n));
       }
+    }
   }
+
   int getInventoryIndexByType(BlockType type, Inventory inventory)
   {
     for (size_t i=0; i<inventory.size; i++)
@@ -220,5 +271,87 @@ class Blocks
       if(inventory.at(i).Item.type == BlockType::NONE) return i;
     }
     return 255;
+  }
+  void generateTrees()
+  {
+    std::vector<std::vector<int>> pos = getTopLayerXY();
+    int tree1[49] = {
+      0, 0, 0, 2, 0, 0, 0,
+      0, 0, 2, 2, 2, 0, 0,
+      0, 2, 2, 2, 2, 2, 0,
+      2, 2, 2, 1, 2, 2, 2,
+      0, 2, 2, 1, 2, 2, 0,
+      0, 0, 0, 1, 0, 0, 0,
+      0, 0, 0, 1, 0, 0, 0
+    };
+
+    for(auto p : pos)
+    {
+      
+      if(rand() % 25 != 0) continue;
+      int grassX = p[0];
+      int grassY = p[1];
+
+      for (int i = 0; i < 49; i++)
+      {
+        int v = tree1[i];
+        if(v == 0) continue;
+
+        int xadd = i%7;
+        int yadd = i/7;
+        
+        int factorx = 3;
+        int factory = 6;
+
+        int worldX = grassX-factorx+xadd;
+        int worldY = grassY-factory+yadd;
+        
+        if(inbounds(worldY, 0, blocks.size()) && inbounds(worldX, 0, blocks[0].size()))
+        {
+          if(v == 1) blocks.at(worldY).at(worldX).type = BlockType::BARK;
+          if(v == 2) blocks.at(worldY).at(worldX).type = BlockType::LEAF;
+        }
+      }
+    }
+  }
+  std::vector<std::vector<int>> getTopLayerXY()
+  {
+    updateBlocks();
+    std::vector<std::vector<int>> pos;
+    for(int y=0;y<blocks.size()-1;y++)
+    {
+      for(int x=0;x<blocks.at(y).size()-1;x++)
+      {
+        int Bx = x*32;
+        int By = y*32;
+
+        if (blocks.at(y).at(x).type == AIR)
+        {
+          continue;
+        }
+        else
+        {
+          if(blocks.at(y-1).at(x).type == AIR) pos.push_back({x, y});
+        }
+      }
+    }
+    return pos;
+  }
+  std::vector<std::vector<int>> getBelowX(int x)
+  {
+    std::vector<std::vector<int>> top = getTopLayerXY();
+    std::vector<std::vector<int>> VecBlocks;
+    for(int i=0;i<blocks.size();i++){
+      for(int j=0;j<blocks.size();j++){
+        for(auto block : top)
+        {
+          if(i<block[1] && j == block[0])
+          {
+            VecBlocks.push_back({j, i});
+          }
+        }
+      }
+    }
+    return VecBlocks;
   }
 };
