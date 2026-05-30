@@ -118,7 +118,7 @@ class Blocks
         }
         if (blocks.at(y).at(x).LightSource == TORCH)
         {
-          DrawTexture(Textures::TextureTorch, Bx+4, By+4, WHITE);
+          DrawTexture(Textures::TextureTorch, Bx, By, WHITE);
         }
         else if (blocks.at(y).at(x).LightSource != NOLIGHT && blocks.at(y).at(x).LightSource != NATURAL)
         {
@@ -151,6 +151,7 @@ class Blocks
           blocks.at(yindex).at(xindex).LightSource = TORCH;
         }
       }
+      else{
 
       try
       {
@@ -165,7 +166,8 @@ class Blocks
         std::cout << "\nx: " << xindex << "\ny: " << yindex << "\n\n";
       }
       updateInventory(inv);
-      updateBrightness();
+    }
+    updateBrightness();
     }
     if(mousePressedRight)
     {
@@ -225,7 +227,7 @@ class Blocks
     int width = blocks.at(0).size();
     int height = blocks.size();
 
-    int surr[8][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {1, 1}, {1, -1}, {-1, 1}};
+    int surr[9][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {1, 1}, {1, -1}, {-1, 1}, {0, 0}};
     for (int y=0; y < height; y++)
     {
       for (int x = 0; x < width; x++)
@@ -238,7 +240,7 @@ class Blocks
         {
           if(!inbounds(x+s[0], 0, width) || !inbounds(y+s[1], 0, height)) continue;
 
-          if(blocks.at(y+s[1]).at(x+s[0]).LightSource == NATURAL)
+          if(blocks.at(y+s[1]).at(x+s[0]).LightSource == NATURAL || blocks.at(y+s[1]).at(x+s[0]).LightSource == TORCH)
           {
             blocks.at(y).at(x).Brightness = 255;
             foundL = true;
