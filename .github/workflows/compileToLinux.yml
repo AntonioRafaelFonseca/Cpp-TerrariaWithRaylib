@@ -1,0 +1,43 @@
+name: Compilar para Linux
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Descarregar o código do repositório
+      uses: actions/checkout@v4
+
+    - name: Instalar dependências e Raylib no Linux
+      run: |
+        sudo apt-get update
+        # Instalar ferramentas de compilação e dependências gráficas da Raylib
+        sudo apt-get install -y build-essential libasound2-dev libx11-dev libxrandr-dev \
+                               libxi-dev libgl1-mesa-dev libglu1-mesa-dev libxcursor-dev \
+                               libxinerama-dev libwayland-dev libxkbcommon-dev
+        
+        # Como o apt não costuma ter a Raylib super atualizada nos repositórios padrão,
+        # a forma mais segura e rápida num GitHub Action é clonar e compilar a biblioteca estaticamente.
+        git clone https://github.com/raysan5/raylib.git raylib_src
+        cd raylib_src/src
+        make PLATFORM=PLATFORM_DESKTOP
+        sudo make install
+        cd ../..
+
+    - name: Compilar o Jogo
+      run: |
+        # Cria a pasta 'linux' se ela não existir
+        mkdir -p linux
+        
+        # Compilação para Linux usando as flags de sistema corretas
+        g++ -O3 -std=c++17 main.cpp \
+        -lraylib -lGL -lm -lpthread -ldl -lrt -lX11 \
+        -o linux/meu_jogo_linux
+
+    - name: Disponibilizar o Executável para Download
+      uses: actions/upload-artifact@v4
+      with:
+        name: TerrariaDoToinoLinux
+        path: linux/meu_jogo_linux
