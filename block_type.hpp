@@ -1,7 +1,7 @@
 #pragma once
 
 
-enum BlockType
+enum BlockType : unsigned char
 {
   NONE,
   AIR,
@@ -10,13 +10,14 @@ enum BlockType
   STONE,
   LEAF,
   BARK,
+  TORCH
 };
 
-enum LightSourceType
+enum LightSourceType : unsigned char
 {
   NOLIGHT,
   NATURAL,
-  TORCH
+  TYPETORCH
 };
 
 struct Block
@@ -24,4 +25,11 @@ struct Block
   BlockType type;
   LightSourceType LightSource = NOLIGHT;
   unsigned char Brightness = 50;
+  bool isSolid();
 };
+
+bool Block::isSolid()
+{
+  if (this->type == AIR || this->type == TORCH) return false;
+  return true;
+}

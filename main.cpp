@@ -32,79 +32,24 @@ void drawPlayer(Player& p, unsigned char pb)
   {
     DrawTexture(Textures::TextureSlotarrow, p.inventory.selected*32, (float)GetScreenHeight()-64, WHITE);
     DrawTexture(Textures::TextureSlot, i*Textures::TextureSlot.width, GetScreenHeight()-Textures::TextureSlot.height, WHITE);
-    if(p.inventory.inventory[i].Item.type == DIRT)
-    {
-      DrawTextureEx(Textures::TextureDirt, {(float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height}, 0.0f, 0.8, WHITE);
-    }
-    else if(p.inventory.inventory[i].Item.type == GRASS)
-    {
-      DrawTextureEx(Textures::TextureGrass, {(float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height}, 0.0f, 0.8, WHITE);
-    }
-    else if(p.inventory.inventory[i].Item.type == STONE)
-    {
-      DrawTextureEx(Textures::TextureStone, {(float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height}, 0.0f, 0.8, WHITE);
-    }
+    
+    DrawTextureEx(getTextureByType(p.inventory.inventory[i].Item.type),
+                  {(float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height-4},
+                  0.0f, 0.8, WHITE);
+    
     DrawText(std::to_string(p.inventory.inventory[i].amount).c_str(), (float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height, 12, RAYWHITE);
   }
-  DrawTexture(Textures::TexturePlayer, 250, 300, {pb, pb, pb, 255});
+  DrawTexture(Textures::TexturePlayer, GetScreenWidth() / 2, GetScreenHeight() / 2, {pb, pb, pb, 255});
 }
 
-void Player::update(std::vector<std::vector<Block>> b, unsigned char& pb)
-{
-  float speed = 3.0f;
-  float Jspeed = -15.0f;
-  
-  int playerWorldX = this->x + 250;
-  int playerWorldY = this->y + 300;
-  int xindex = (playerWorldX + 16) / 32;
-  int yindex = (playerWorldY) / 32;
-
-  pb = b.at(yindex).at(xindex).Brightness;
-  
-  bool contact = false;
-  if (inBounds(xindex, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
-  {
-      if (b.at(yindex+1).at(xindex).type != AIR)
-      {
-          contact = true;
-          this->y = ((yindex + 1) * 32) - 300 - 32;
-      }
-  }
-
-  yindex = (playerWorldY+3) / 32;
-  xindex = (playerWorldX+32) / 32;
-  if (IsKeyDown(KEY_A))
-  {
-    if(inBounds(xindex, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
-    {
-      if (b.at(yindex).at(xindex-1).type == AIR) this->x -= speed;
-    }
-  }
-  
-  xindex = (playerWorldX) / 32;
-  if (IsKeyDown(KEY_D))
-  {
-    if(inBounds(xindex + 1, 0, b.at(0).size()) && inBounds(yindex, 0, b.size()))
-    {
-      if (b.at(yindex).at(xindex + 1).type == AIR) this->x += speed;
-    }
-  }
-  
-  updateY(contact);
-  if (IsKeyPressed(KEY_W) && contact)
-  {
-    this->vy = Jspeed;
-    this->y-=0.1;
-  }
-  yindex = (playerWorldY) / 32;
-  if(b.at(yindex).at(xindex).type != AIR)
-  {
-    contact = false;
-    this->vy = 5;
-    this->y += 0.1;
-  }
+int max(int a, int b) {
+  if(a>b) return a;
+  return b;
 }
-
+int min(int a, int b) {
+  if(a>b) return b;
+  return a;
+}
 
 
 int main()
@@ -114,21 +59,49 @@ int main()
   Textures::LoadAll();
   GameState GS = RUNNING;
   Blocks b;
-  b.setup();
   Player ClientPlayer;
   SetTargetFPS(30);
   unsigned char pb;
+  ClientPlayer.inventory.inventory[0].Item.type = TORCH;
+  ClientPlayer.inventory.inventory[0].amount = 32;
+  int avgH = (int)b.getHeight()/2;
+  int screenW = GetScreenWidth();
+  int screenH = GetScreenHeight();
+  bool started = false;
+  ClientPlayer.gotoSurface();
   while (!WindowShouldClose())
   {
+    
     BeginDrawing();
-    ClearBackground(WHITE);
+    ClearBackground({66, 162, 214, 255});
+    if(b.loading)
+    {
+      if(!started)
+      {
+        b.setup();
+        started = 0b00000001;
+      }
+      DrawText("Loading...", 100, 100, 25, BLACK);
+    }
+    else
+    {
+      int camX = ClientPlayer.x - (GetScreenWidth() / 2);
+      int camY = ClientPlayer.y - (GetScreenHeight() / 2);
+      
+      int subsoloY = 3200 - camY;
+      int alturaRetangulo = GetScreenHeight() - subsoloY;
 
-    b.update(ClientPlayer.x, ClientPlayer.y, ClientPlayer.inventory);
-    b.updateBlocks(ClientPlayer.x, ClientPlayer.y);
-    ClientPlayer.update(b.blocks, pb);
+      if (subsoloY < GetScreenHeight()) {
+          DrawRectangle(0, max(0, subsoloY), GetScreenWidth(), max(0, alturaRetangulo), {104, 61, 40, 255});
+      }
 
-    b.draw(ClientPlayer.x, ClientPlayer.y);
-    drawPlayer(ClientPlayer, pb);
+      b.update(camX, camY, ClientPlayer.inventory);
+      b.updateBlocks(camX, camY);
+      ClientPlayer.update(b, pb);
+
+      b.draw(camX, camY);
+      drawPlayer(ClientPlayer, pb);
+    }
     EndDrawing();
   }
   Textures::UnloadAll();

@@ -17,112 +17,83 @@ class Blocks
 {
   public:
   
-  std::vector<std::vector<Block>> blocks;
+  std::vector<Block> blocks;
+  Block  unusedBlock {.type = BlockType::NONE};
+  int width = 1000;
+  int height = 200;
+  bool loading = true;
   void setup()
   {
-      int width = 500;
-      int height = 60;
+    loading = true;
       // 1. Inicializa primeiro todo o mapa como AIR
-      for(int y = 0; y < height; y++)
-      {
-          std::vector<Block> vls;
-          for (int x = 0; x < width; x++)
-          {
-              vls.push_back(Block {.type = BlockType::AIR, .LightSource = LightSourceType::NATURAL});
-          }
-          blocks.push_back(vls);
-      }
-  
+      blocks.assign(width * height, Block {.type = BlockType::AIR, .LightSource = LightSourceType::NATURAL});
       // 2. Aplica o Perlin Noise para gerar a superfície do terreno
       for(int x = 0; x < width; x++)
-      {
-          float noiseValue = perlin(x / 15.0f, 0.0f);
-          float normalizedNoise = (noiseValue + 1.0f) / 2.0f;
-          int baseLine = height/2;  // Altura média do mundo
-          int amplitude = (int)25; // Altura máxima das montanhas
-          int surfaceY = baseLine + (int)(normalizedNoise * amplitude);
-          
-          if (surfaceY < 0) surfaceY = 0;
-          if (surfaceY >= 100) surfaceY = 99;
-  
-          for (int y = surfaceY; y < height; y++)
-          {
-            if(rand()%50 == 0)
+        {
+            float noise1 = perlin(x / 80.0f, 0.0f);
+
+            float noise2 = perlin(x / 12.0f, 0.0f);
+            float combinado = (noise1 * 0.8f) + (noise2 * 0.2f);
+            float normalizedNoise = (combinado + 1.0f) / 2.0f;
+            int baseLine = height / 2;    // Altura média (linha 100)
+            int amplitude = 60;           // Altura máxima que as montanhas podem subir/descer
+            int surfaceY = baseLine + (int)(normalizedNoise * amplitude);
+            if (surfaceY < 0) surfaceY = 0;
+            if (surfaceY >= height) surfaceY = height - 1;
+            for (int y = surfaceY; y < height; y++)
             {
-              blocks.at(y).at(x).type = BlockType::STONE;
-              blocks.at(y).at(x).LightSource= LightSourceType::NOLIGHT;
+                if(rand() % 50 == 0)
+                {
+                    peek(x, y).type = BlockType::STONE;
+                    peek(x, y).LightSource = LightSourceType::NOLIGHT;
+                }
+                else
+                {
+                    peek(x, y).type = BlockType::GRASS;
+                    peek(x, y).LightSource = LightSourceType::NOLIGHT;
+                }
             }
-            else
-            {
-              blocks.at(y).at(x).type = BlockType::GRASS;
-              blocks.at(y).at(x).LightSource= LightSourceType::NOLIGHT;
-            }
-          }
-      }
+        }
       int surr[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
       for(int y=0;y<height;y++)
       {
         for(int x=0;x<width;x++)
         {
-          if(blocks.at(y).at(x).type == BlockType::STONE)
+          if(peek(x, y).type == BlockType::STONE)
           {
             for(auto s : surr)
             {
-              if(!inbounds(y+s[1], 0, height) || !inbounds(x+s[0], 0, width)) continue;
-              if(rand() % 3 == 0) blocks.at(y+s[1]).at(x+s[0]).type = STONE;
+              if(!validPos(x+s[0], y+s[1])) continue;
+              if(rand() % 3 == 0) peek(x+s[0], y+s[1]).type = STONE;
             }
           }
         }
       }
       generateTrees();
     updateBrightness();
+    loading = false;
   }
   void draw(int px, int py)
   {
-    for(int y=0;y<blocks.size()-1;y++)
+    DrawTextureEx(Textures::TextureBackground, {(float)0-px/2, (float)700-py/2}, 0.0f, 3, {170, 170, 245, 255});
+    for(int y=0;y<getHeight();y++)
     {
-      for(int x=0;x<blocks.at(y).size()-1;x++)
+      for(int x=0;x<getWidth();x++)
       {
         int Bx = x*32-px;
         int By = y*32-py;
         if (Bx < -32 || Bx > GetScreenWidth() || By < -32 || By > GetScreenHeight()) continue;
-        unsigned char b = blocks.at(y).at(x).Brightness;
-        if (blocks.at(y).at(x).type == AIR)
-        {
-          DrawTexture(Textures::TextureAir, Bx, By, {b, b, b, 255});
+        unsigned char b = peek(x, y).Brightness;
+        if(peek(x, y).type == AIR) {
+          DrawRectangle(Bx, By, 32, 32, {0, 0, 0, (unsigned char)(255-b)});
         }
-        else if (blocks.at(y).at(x).type == GRASS)
+        else if(peek(x, y).type != AIR)
         {
-          DrawTexture(Textures::TextureGrass, Bx, By, {b, b, b, 255});
+          DrawTexture(getTextureByType(peek(x, y).type), Bx, By, {b, b, b, 255});
         }
-        else if (blocks.at(y).at(x).type == DIRT)
+        else if (peek(x, y).type != NONE)
         {
-          DrawTexture(Textures::TextureDirt, Bx, By, {b, b, b, 255});
-        }
-        else if (blocks.at(y).at(x).type == STONE)
-        {
-          DrawTexture(Textures::TextureStone, Bx, By, {b, b, b, 255});
-        }
-        else if (blocks.at(y).at(x).type == LEAF)
-        {
-          DrawTexture(Textures::TextureLeafs, Bx, By, {b, b, b, 255});
-        }
-        else if (blocks.at(y).at(x).type == BARK)
-        {
-          DrawTexture(Textures::TextureBark, Bx, By, {b, b, b, 255});
-        }
-        else
-        {
-          std::cerr << "invalid type at blocks[" << y << "][" << x << "]" << "type = " << blocks.at(y).at(x).type;
-          exit(1);
-        }
-        if (blocks.at(y).at(x).LightSource == TORCH)
-        {
-          DrawTexture(Textures::TextureTorch, Bx, By, WHITE);
-        }
-        else if (blocks.at(y).at(x).LightSource != NOLIGHT && blocks.at(y).at(x).LightSource != NATURAL)
-        {
-          std::cerr << "invalid Ligth Src at blocks[" << y << "][" << x << "]" << "type = " << blocks.at(y).at(x).LightSource;
+          std::cerr << "line 121 block.hpp invalid type at blocks[" << y << "][" << x << "]" << "type = " << peek(x, y).type;
           exit(1);
         }
       }
@@ -143,89 +114,76 @@ class Blocks
       int xindex = (int)(mouseX+px) / 32;
       int yindex = (int)(mouseY+py) / 32;
 
-      if (spacePressed)
-      {
-        if(blocks.at(yindex).at(xindex).type == AIR)
-        {
-          std::cout << "blocks line 150";
-          blocks.at(yindex).at(xindex).LightSource = TORCH;
-        }
-      }
-      else{
+      
 
-      try
+      if (validPos(xindex, yindex))
       {
-        if(blocks.at(yindex).at(xindex).type == AIR && inv.inventory[inv.selected].Item.type != NONE)
+        if(peek(xindex, yindex).type == AIR)
         {
-          blocks.at(yindex).at(xindex).type = inv.inventory[inv.selected].Item.type;
-          inv.inventory[inv.selected].amount -= 1;
+          if (inv.inventory[inv.selected].Item.type != NONE)
+          {
+            peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
+            inv.inventory[inv.selected].amount -= 1;
+          }
+          updateBrightness();
         }
-      }
-      catch(std::out_of_range)
-      {
-        std::cout << "\nx: " << xindex << "\ny: " << yindex << "\n\n";
-      }
+      
       updateInventory(inv);
     }
-    updateBrightness();
     }
     if(mousePressedRight)
     {
       int xindex = (int)(mouseX+px) / 32;
       int yindex = (int)(mouseY+py) / 32;
-      
-      if (blocks.at(yindex).at(xindex).type != AIR)
+      if(validPos(xindex, yindex) && peek(xindex, yindex).type != AIR)
       {
-        try
+        int inventoryIndex = getInventoryIndexByType(peek(xindex, yindex).type, inv);
+        if(inventoryIndex != 255)
         {
-          int inventoryIndex = getInventoryIndexByType(blocks.at(yindex).at(xindex).type, inv);
-          if(inventoryIndex != 255)
-          {
-            if(inv.inventory[inventoryIndex].Item.type != blocks.at(yindex).at(xindex).type)
+            if(inv.inventory[inventoryIndex].Item.type != peek(xindex, yindex).type)
             {
-              inv.inventory[inventoryIndex].Item.type = blocks.at(yindex).at(xindex).type;
+            inv.inventory[inventoryIndex].Item.type = peek(xindex, yindex).type;
             }
-            inv.inventory[inventoryIndex].amount += 1;
-          }
-          blocks.at(yindex).at(xindex).type = AIR;
+          inv.inventory[inventoryIndex].amount += 1;
         }
-        catch(std::out_of_range)
-        {
-          std::cout << "\nx: " << xindex << "\ny: " << yindex << "\n\n";
-        }
-        updateInventory(inv);
         updateBrightness();
+        peek(xindex, yindex).type = AIR;
       }
+      updateInventory(inv);
     }
     if(IsKeyPressed(KEY_LEFT)) inv.selected--;
     if(IsKeyPressed(KEY_RIGHT)) inv.selected++;
   }
   void updateBlocks(int px=0, int py=0)
   {
-    for(int y=0;y<blocks.size()-1;y++)
+    for(int y=0;y<getHeight()-1;y++)
     {
-    for(int x=0;x<blocks.at(y).size()-1;x++)
+    for(int x=0;x<getWidth()-1;x++)
     {
       int Bx = x*32-px;
       int By = y*32-py;
       if (Bx < -32 || Bx > GetScreenWidth() || By < -32 || By > GetScreenHeight()) continue;
 
-      if (blocks.at(y).at(x).type == AIR)
+      if (peek(x, y).type == AIR)
       {
         continue;
       }
-      else if (blocks.at(y).at(x).type == GRASS)
+      else if (peek(x, y).type == GRASS)
       {
-        if(blocks.at(y-1).at(x).type != AIR) blocks.at(y).at(x).type = DIRT;
+        if(!validPos(0, y-1)) continue;
+        if(peek(x, y-1).type != AIR) peek(x, y).type = DIRT;
       }
-
+      else if(peek(x, y).type == TORCH)
+      {
+        peek(x, y).LightSource == TYPETORCH;
+      }
     }
   }
   }
   void updateBrightness()
   {
-    int width = blocks.at(0).size();
-    int height = blocks.size();
+    int width = getWidth();
+    int height = getHeight();
 
     int surr[9][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {1, 1}, {1, -1}, {-1, 1}, {0, 0}};
     for (int y=0; y < height; y++)
@@ -238,35 +196,43 @@ class Blocks
         bool foundL = false;
         for(auto s : surr)
         {
-          if(!inbounds(x+s[0], 0, width) || !inbounds(y+s[1], 0, height)) continue;
+          if(!validPos(x+s[0],y+s[1])) continue;
 
-          if(blocks.at(y+s[1]).at(x+s[0]).LightSource == NATURAL || blocks.at(y+s[1]).at(x+s[0]).LightSource == TORCH)
+          if(peek(x+s[0], y+s[1]).LightSource == NATURAL || peek(x+s[0], y+s[1]).type == TORCH)
           {
-            blocks.at(y).at(x).Brightness = 255;
+            peek(x, y).Brightness = 255;
             foundL = true;
             break;
           }
           else
           {
-            if(blocks.at(y+s[1]).at(x+s[0]).Brightness > maxB)
+            if(peek(x+s[0], y+s[1]).Brightness > maxB)
             {
-              maxB = blocks.at(y+s[1]).at(x+s[0]).Brightness;
+              maxB = peek(x+s[0], y+s[1]).Brightness;
             }
-            sum += blocks.at(y+s[1]).at(x+s[0]).Brightness;
+            sum += peek(x+s[0], y+s[1]).Brightness;
             n++;
           }
         }
-        
-        if(!foundL) blocks.at(y).at(x).Brightness = (unsigned char)(maxB-std::min(255, sum/n));
+        if (!foundL)
+        {
+            int novoBrilho = maxB - std::min(255, sum / n);
+            if (novoBrilho < 25) novoBrilho = 25; // Garante o mínimo de escuridão
+            int diferenca = std::abs((int)peek(x, y).Brightness - novoBrilho);
+            if (diferenca < 10) continue;
+
+            peek(x, y).Brightness = (unsigned char)novoBrilho;
+        }
       }
     }
   }
 
   int getInventoryIndexByType(BlockType type, Inventory inventory)
   {
+    if(type == NONE) return 255;
     for (size_t i=0; i<inventory.size; i++)
     {
-      if(inventory.at(i).Item.type == type && !inventory.inventory[i].full) return i;
+      if(inventory.at(i).Item.type == type && inventory.inventory[i].amount != 0) return i;
     }
     for (size_t i=0; i<inventory.size; i++)
     {
@@ -274,6 +240,7 @@ class Blocks
     }
     return 255;
   }
+
   void generateTrees()
   {
     std::vector<std::vector<int>> pos = getTopLayerXY();
@@ -308,10 +275,10 @@ class Blocks
         int worldX = grassX-factorx+xadd;
         int worldY = grassY-factory+yadd;
         
-        if(inbounds(worldY, 0, blocks.size()) && inbounds(worldX, 0, blocks[0].size()))
+        if(validPos(worldX, worldY))
         {
-          if(v == 1) blocks.at(worldY).at(worldX).type = BlockType::BARK;
-          if(v == 2) blocks.at(worldY).at(worldX).type = BlockType::LEAF;
+          if(v == 1) peek(worldX, worldY).type = BlockType::BARK;
+          if(v == 2) peek(worldX, worldY).type = BlockType::LEAF;
         }
       }
     }
@@ -320,20 +287,20 @@ class Blocks
   {
     updateBlocks();
     std::vector<std::vector<int>> pos;
-    for(int y=0;y<blocks.size()-1;y++)
+    for(int y=0;y<getHeight()-1;y++)
     {
-      for(int x=0;x<blocks.at(y).size()-1;x++)
+      for(int x=0;x<getWidth();x++)
       {
         int Bx = x*32;
         int By = y*32;
 
-        if (blocks.at(y).at(x).type == AIR)
+        if (peek(x, y).type == AIR)
         {
           continue;
         }
         else
         {
-          if(blocks.at(y-1).at(x).type == AIR) pos.push_back({x, y});
+          if(validPos(x, y-1)) if(peek(x, y-1).type == AIR) pos.push_back({x, y});
         }
       }
     }
@@ -343,8 +310,8 @@ class Blocks
   {
     std::vector<std::vector<int>> top = getTopLayerXY();
     std::vector<std::vector<int>> VecBlocks;
-    for(int i=0;i<blocks.size();i++){
-      for(int j=0;j<blocks.size();j++){
+    for(int i=0;i<getHeight();i++){
+      for(int j=0;j<getHeight();j++){
         for(auto block : top)
         {
           if(i<block[1] && j == block[0])
@@ -356,4 +323,24 @@ class Blocks
     }
     return VecBlocks;
   }
+  Block& peek(int posx, int posy)
+  {
+    int index = posy*getWidth()+posx;
+    if(validPos(posx, posy)) return blocks.at(index);
+    return this->unusedBlock;
+  }
+  bool validPos(int x, int y)
+  {
+    return (inbounds(x, 0, getWidth()) && inbounds(y, 0, getHeight()));
+  }
+  int getWidth()
+  {
+    return this->width;
+  }
+  
+  int getHeight()
+  {
+    return this->height;
+  }
+
 };
