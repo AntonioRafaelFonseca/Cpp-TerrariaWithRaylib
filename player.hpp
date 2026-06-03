@@ -7,19 +7,16 @@ class Player
 {
 public:
   float x = 3*32;
-  float y = 100;
+  float y = 2000;
   float vy = 0;
   int life = 10;
   float G = 1.0f;
   Inventory inventory;
   LayerIndex layer = { 0b00000001 };
 
-  void gotoSurface()
-  {
-    this->y = 10*32;
-  }
   void update(Blocks& b, unsigned char& pb)
   {
+    
     if(IsKeyPressed(KEY_UP))
     {
       this->layer+=1;
@@ -59,14 +56,14 @@ public:
     if (contact && this->vy > 0)
     {
       this->vy = 0;
-      this->y = (yindex * 32); // Cola o boneco no topo do bloco de forma exata
+      this->y = (yindex * 32);
     }
     
     int xindexTeto = (int)(this->x + 12) / 32;
     if (b.peek(xindexTeto, yindex - 1).isSolid() && this->vy < 0)
     {
       this->vy = 0;
-      this->y = (yindex * 32); // Impede de atravessar o teto
+      this->y = (yindex * 32);
     }
 
     if (IsKeyPressed(KEY_W) && contact)

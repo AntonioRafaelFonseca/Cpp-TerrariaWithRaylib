@@ -5,6 +5,7 @@ struct Textures
 static inline Texture2D TextureAir;
 static inline Texture2D TextureBackground;
 static inline Texture2D TextureBark;
+static inline Texture2D TextureCrafter;
 static inline Texture2D TextureDirt;
 static inline Texture2D TextureGrass;
 static inline Texture2D TextureHeart0;
@@ -21,6 +22,7 @@ static void LoadAll() {
 TextureAir = LoadTexture("imgs/AirTexture.png");
 TextureBackground = LoadTexture("imgs/Background.png");
 TextureBark = LoadTexture("imgs/BarkTexture.png");
+TextureCrafter = LoadTexture("imgs/CrafterTexture.png");
 TextureDirt = LoadTexture("imgs/DirtTexture.png");
 TextureGrass = LoadTexture("imgs/GrassTexture.png");
 TextureHeart0 = LoadTexture("imgs/heart0.png");
@@ -38,6 +40,7 @@ static void UnloadAll() {
 UnloadTexture(TextureAir);
 UnloadTexture(TextureBackground);
 UnloadTexture(TextureBark);
+UnloadTexture(TextureCrafter);
 UnloadTexture(TextureDirt);
 UnloadTexture(TextureGrass);
 UnloadTexture(TextureHeart0);
@@ -59,6 +62,10 @@ Texture2D getTextureByType(BlockType type){
     else if (type == BlockType::BARK)
     {
         return Textures::TextureBark;
+    }
+    else if (type == BlockType::CRAFTER)
+    {
+        return Textures::TextureCrafter;
     }
     else if (type == BlockType::DIRT)
     {

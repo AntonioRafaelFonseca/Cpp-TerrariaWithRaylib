@@ -10,7 +10,8 @@ types = [
   'STONE',
   'LEAF',
   'BARK',
-  'TORCH'
+  'TORCH',
+  'CRAFTER'
 ]
 
 arr.append('#pragma once\n#include "raylib.h"\n')

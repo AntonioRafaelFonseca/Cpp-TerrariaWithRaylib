@@ -10,7 +10,8 @@ enum BlockType : unsigned char
   STONE,
   LEAF,
   BARK,
-  TORCH
+  TORCH,
+  CRAFTER
 };
 
 enum LightSourceType : unsigned char

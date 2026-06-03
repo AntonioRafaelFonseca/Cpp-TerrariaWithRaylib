@@ -31,7 +31,13 @@ void drawPlayer(Player& p, unsigned char pb)
   for(int i=0;i<5;i++)
   {
     DrawTexture(Textures::TextureSlotarrow, p.inventory.selected*32, (float)GetScreenHeight()-64, WHITE);
-    DrawTexture(Textures::TextureSlot, i*Textures::TextureSlot.width, GetScreenHeight()-Textures::TextureSlot.height, WHITE);
+    if(i==p.inventory.mouseSelected)
+    {
+      DrawTexture(Textures::TextureSlot, i*Textures::TextureSlot.width, GetScreenHeight()-Textures::TextureSlot.height, {205, 205, 205, 255});
+    }
+    else{
+      DrawTexture(Textures::TextureSlot, i*Textures::TextureSlot.width, GetScreenHeight()-Textures::TextureSlot.height, WHITE);
+    }
     
     DrawTextureEx(getTextureByType(p.inventory.inventory[i].Item.type),
                   {(float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height-4},
@@ -55,20 +61,19 @@ int min(int a, int b) {
 int main()
 {
   InitWindow(GetScreenWidth(), GetScreenHeight(), "main");
-  ToggleFullscreen();
+  // ToggleFullscreen();
   Textures::LoadAll();
   GameState GS = RUNNING;
   Blocks b;
   Player ClientPlayer;
   SetTargetFPS(30);
   unsigned char pb;
-  ClientPlayer.inventory.inventory[0].Item.type = TORCH;
-  ClientPlayer.inventory.inventory[0].amount = 32;
+  ClientPlayer.inventory.inventory[0].Item.type = CRAFTER;
+  ClientPlayer.inventory.inventory[0].amount = 1;
   int avgH = (int)b.getHeight()/2;
   int screenW = GetScreenWidth();
   int screenH = GetScreenHeight();
   bool started = false;
-  ClientPlayer.gotoSurface();
   while (!WindowShouldClose())
   {
     
@@ -82,7 +87,6 @@ int main()
         started = 0b00000001;
       }
       DrawText("Loading...", 100, 100, 25, BLACK);
-      _sleep(1000);
     }
     else
     {
