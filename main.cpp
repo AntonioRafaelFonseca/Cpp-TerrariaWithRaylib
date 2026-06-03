@@ -82,6 +82,7 @@ int main()
         started = 0b00000001;
       }
       DrawText("Loading...", 100, 100, 25, BLACK);
+      _sleep(1000);
     }
     else
     {
@@ -95,7 +96,7 @@ int main()
           DrawRectangle(0, max(0, subsoloY), GetScreenWidth(), max(0, alturaRetangulo), {104, 61, 40, 255});
       }
 
-      b.update(camX, camY, ClientPlayer.inventory);
+      b.update(ClientPlayer.layer, camX, camY, ClientPlayer.inventory);
       b.updateBlocks(camX, camY);
       ClientPlayer.update(b, pb);
 

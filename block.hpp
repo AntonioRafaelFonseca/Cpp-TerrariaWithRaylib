@@ -18,16 +18,17 @@ class Blocks
   public:
   
   std::vector<Block> blocks;
+  std::vector<SmallBlock> BackLayerBlocks;
   Block  unusedBlock {.type = BlockType::NONE};
+  SmallBlock  unusedBBlock {.type = BlockType::NONE};
   int width = 1000;
   int height = 200;
   bool loading = true;
   void setup()
   {
     loading = true;
-      // 1. Inicializa primeiro todo o mapa como AIR
-      blocks.assign(width * height, Block {.type = BlockType::AIR, .LightSource = LightSourceType::NATURAL});
-      // 2. Aplica o Perlin Noise para gerar a superfície do terreno
+    blocks.assign(width * height, Block {.type = BlockType::AIR, .LightSource = LightSourceType::NATURAL});
+    BackLayerBlocks.assign(width*height, SmallBlock());
       for(int x = 0; x < width; x++)
         {
             float noise1 = perlin(x / 80.0f, 0.0f);
@@ -84,6 +85,10 @@ class Blocks
         int By = y*32-py;
         if (Bx < -32 || Bx > GetScreenWidth() || By < -32 || By > GetScreenHeight()) continue;
         unsigned char b = peek(x, y).Brightness;
+        if(peekBackLayer(x, y).type != AIR)
+        {
+          DrawTexture(getTextureByType(peekBackLayer(x, y).type), Bx, By, {(unsigned char)(b-50), (unsigned char)(b-50), (unsigned char)(b-50), (unsigned char)(255)});
+        }
         if(peek(x, y).type == AIR) {
           DrawRectangle(Bx, By, 32, 32, {0, 0, 0, (unsigned char)(255-b)});
         }
@@ -100,7 +105,7 @@ class Blocks
     }
   }
 
-  void update(int px, int py, Inventory& inv)
+  void update(LayerIndex li, int px, int py, Inventory& inv)
   {
     int mouseX = GetMouseX();
     int mouseY = GetMouseY();
@@ -118,11 +123,18 @@ class Blocks
 
       if (validPos(xindex, yindex))
       {
-        if(peek(xindex, yindex).type == AIR)
+        if((peek(xindex, yindex).type == AIR && li=='f') || (peekBackLayer(xindex, yindex).type == AIR && li=='b'))
         {
           if (inv.inventory[inv.selected].Item.type != NONE)
           {
-            peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
+            if(li=='f')
+            {
+              peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
+            }
+            else if(li=='b')
+            {
+              peekBackLayer(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
+            }
             inv.inventory[inv.selected].amount -= 1;
           }
           updateBrightness();
@@ -135,19 +147,39 @@ class Blocks
     {
       int xindex = (int)(mouseX+px) / 32;
       int yindex = (int)(mouseY+py) / 32;
-      if(validPos(xindex, yindex) && peek(xindex, yindex).type != AIR)
+      if(li=='f')
       {
-        int inventoryIndex = getInventoryIndexByType(peek(xindex, yindex).type, inv);
-        if(inventoryIndex != 255)
+        if(validPos(xindex, yindex) && peek(xindex, yindex).type != AIR )
         {
-            if(inv.inventory[inventoryIndex].Item.type != peek(xindex, yindex).type)
-            {
-            inv.inventory[inventoryIndex].Item.type = peek(xindex, yindex).type;
-            }
-          inv.inventory[inventoryIndex].amount += 1;
+          int inventoryIndex = getInventoryIndexByType(peek(xindex, yindex).type, inv);
+          if(inventoryIndex != 255)
+          {
+              if(inv.inventory[inventoryIndex].Item.type != peek(xindex, yindex).type)
+              {
+                inv.inventory[inventoryIndex].Item.type = peek(xindex, yindex).type;
+              }
+            inv.inventory[inventoryIndex].amount += 1;
+          }
+          updateBrightness();
+          peek(xindex, yindex).type = AIR;
         }
-        updateBrightness();
-        peek(xindex, yindex).type = AIR;
+      }
+      else if (li=='b')
+      {
+        if(validPos(xindex, yindex) && peekBackLayer(xindex, yindex).type != AIR)
+        {
+          int inventoryIndex = getInventoryIndexByType(peekBackLayer(xindex, yindex).type, inv);
+          if(inventoryIndex != 255)
+          {
+              if(inv.inventory[inventoryIndex].Item.type != peekBackLayer(xindex, yindex).type)
+              {
+                inv.inventory[inventoryIndex].Item.type = peekBackLayer(xindex, yindex).type;
+              }
+            inv.inventory[inventoryIndex].amount += 1;
+          }
+          updateBrightness();
+          peekBackLayer(xindex, yindex).type = AIR;
+        }
       }
       updateInventory(inv);
     }
@@ -328,6 +360,12 @@ class Blocks
     int index = posy*getWidth()+posx;
     if(validPos(posx, posy)) return blocks.at(index);
     return this->unusedBlock;
+  }
+  SmallBlock& peekBackLayer(int posx, int posy)
+  {
+    int index = posy*getWidth()+posx;
+    if(validPos(posx, posy)) return BackLayerBlocks.at(index);
+    return this->unusedBBlock;
   }
   bool validPos(int x, int y)
   {

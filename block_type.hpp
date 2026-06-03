@@ -28,6 +28,11 @@ struct Block
   bool isSolid();
 };
 
+struct SmallBlock
+{
+  BlockType type = AIR;
+};
+
 bool Block::isSolid()
 {
   if (this->type == AIR || this->type == TORCH) return false;

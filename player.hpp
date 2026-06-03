@@ -6,18 +6,26 @@
 class Player
 {
 public:
-  float x = rand()%500;
+  float x = 3*32;
   float y = 100;
   float vy = 0;
   int life = 10;
   float G = 1.0f;
   Inventory inventory;
+  LayerIndex layer = { 0b00000001 };
+
   void gotoSurface()
   {
     this->y = 10*32;
   }
   void update(Blocks& b, unsigned char& pb)
   {
+    if(IsKeyPressed(KEY_UP))
+    {
+      this->layer+=1;
+      DrawText("Pressed AND Updated  \t Player-> Line 26", 10, 10, 10, BLACK);
+    }
+
     float speed = 3.0f;
     float Jspeed = -12.0f;
 

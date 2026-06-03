@@ -52,3 +52,37 @@ public:
         return *this;
     }
 };
+
+
+struct LayerIndex
+{
+public:
+        unsigned char data = 0b00000001; // 1=front layer 0 = backlayer
+        void wrap()
+        {
+            data = data & 1;
+        }
+
+    LayerIndex& operator+=(int v) {
+        data+=v;
+        wrap();
+        return *this;
+    }
+    LayerIndex& operator=(unsigned char v) {
+        data=v;
+        wrap();
+        return *this;
+    }
+    bool operator==(char b) {
+        if(b == 'f' && data == 0b00000001)
+        {
+            return true;
+        }
+        else if (b == 'b' && data == 0b00000000)
+        {
+            return true;
+        }
+        return false;
+    }
+    
+};
