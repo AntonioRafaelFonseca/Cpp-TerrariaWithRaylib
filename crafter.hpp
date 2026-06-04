@@ -16,7 +16,8 @@ struct returnerValue
 class Crafter
 {
 private:
-  BlockType torch[5] = {BARK, STONE, NONE, NONE, NONE};
+  BlockType torch[5] = {WOODENPLANK, COAL, NONE, NONE, NONE};
+  BlockType woodP[5] = {BARK, BARK, BARK, BARK, NONE};
   int index = 0;
 public:
   BlockType blocks[5] = {NONE, NONE, NONE, NONE, NONE};
@@ -27,8 +28,14 @@ public:
       std::fill(std::begin(blocks), std::end(blocks), BlockType::NONE);
       return {TORCH, 8};
     }
+    if (std::equal(std::begin(blocks), std::end(blocks), std::begin(woodP)))
+    {
+      std::fill(std::begin(blocks), std::end(blocks), BlockType::NONE);
+      return {WOODENPLANK, 8};
+    }
     return {NONE, 0};
   }
+  
   void add(BlockType type)
   {
     updateIndex();

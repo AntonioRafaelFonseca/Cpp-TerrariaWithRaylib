@@ -17,7 +17,6 @@ public:
   static const int size = 5;
   InventorySpace inventory[size];
   SlotIndex selected = 0;
-  unsigned char mouseSelected = size+1;
   InventorySpace at(int n)
   {
     if(n>5 || n<0)

@@ -31,7 +31,7 @@ void drawPlayer(Player& p, unsigned char pb)
   for(int i=0;i<5;i++)
   {
     DrawTexture(Textures::TextureSlotarrow, p.inventory.selected*32, (float)GetScreenHeight()-64, WHITE);
-    if(i==p.inventory.mouseSelected)
+    if(i==p.inventory.selected)
     {
       DrawTexture(Textures::TextureSlot, i*Textures::TextureSlot.width, GetScreenHeight()-Textures::TextureSlot.height, {205, 205, 205, 255});
     }
@@ -74,6 +74,7 @@ int main()
   int screenW = GetScreenWidth();
   int screenH = GetScreenHeight();
   bool started = false;
+  int time = 0;
   while (!WindowShouldClose())
   {
     
@@ -90,6 +91,7 @@ int main()
     }
     else
     {
+      time++;
       int camX = ClientPlayer.x - (GetScreenWidth() / 2);
       int camY = ClientPlayer.y - (GetScreenHeight() / 2);
       
@@ -100,13 +102,14 @@ int main()
           DrawRectangle(0, max(0, subsoloY), GetScreenWidth(), max(0, alturaRetangulo), {104, 61, 40, 255});
       }
 
-      b.update(ClientPlayer.layer, camX, camY, ClientPlayer.inventory);
+      b.update(ClientPlayer.layer, camX, camY, ClientPlayer.inventory, time);
       b.updateBlocks(camX, camY);
       ClientPlayer.update(b, pb);
 
       b.draw(camX, camY);
       drawPlayer(ClientPlayer, pb);
     }
+    DrawFPS(100, 100);
     EndDrawing();
   }
   Textures::UnloadAll();

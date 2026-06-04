@@ -5,6 +5,7 @@ struct Textures
 static inline Texture2D TextureAir;
 static inline Texture2D TextureBackground;
 static inline Texture2D TextureBark;
+static inline Texture2D TextureCoal;
 static inline Texture2D TextureCrafter;
 static inline Texture2D TextureDirt;
 static inline Texture2D TextureGrass;
@@ -17,11 +18,13 @@ static inline Texture2D TextureSlot;
 static inline Texture2D TextureSlotarrow;
 static inline Texture2D TextureStone;
 static inline Texture2D TextureTorch;
+static inline Texture2D TextureWoodenplank;
 
 static void LoadAll() {
 TextureAir = LoadTexture("imgs/AirTexture.png");
 TextureBackground = LoadTexture("imgs/Background.png");
 TextureBark = LoadTexture("imgs/BarkTexture.png");
+TextureCoal = LoadTexture("imgs/CoalTexture.png");
 TextureCrafter = LoadTexture("imgs/CrafterTexture.png");
 TextureDirt = LoadTexture("imgs/DirtTexture.png");
 TextureGrass = LoadTexture("imgs/GrassTexture.png");
@@ -34,12 +37,14 @@ TextureSlot = LoadTexture("imgs/Slot.png");
 TextureSlotarrow = LoadTexture("imgs/SlotArrowTexture.png");
 TextureStone = LoadTexture("imgs/StoneTexture.png");
 TextureTorch = LoadTexture("imgs/TorchTexture.png");
+TextureWoodenplank = LoadTexture("imgs/WoodenPlankTexture.png");
 
 }
 static void UnloadAll() {
 UnloadTexture(TextureAir);
 UnloadTexture(TextureBackground);
 UnloadTexture(TextureBark);
+UnloadTexture(TextureCoal);
 UnloadTexture(TextureCrafter);
 UnloadTexture(TextureDirt);
 UnloadTexture(TextureGrass);
@@ -52,6 +57,7 @@ UnloadTexture(TextureSlot);
 UnloadTexture(TextureSlotarrow);
 UnloadTexture(TextureStone);
 UnloadTexture(TextureTorch);
+UnloadTexture(TextureWoodenplank);
 }
 };
 Texture2D getTextureByType(BlockType type){
@@ -62,6 +68,10 @@ Texture2D getTextureByType(BlockType type){
     else if (type == BlockType::BARK)
     {
         return Textures::TextureBark;
+    }
+    else if (type == BlockType::COAL)
+    {
+        return Textures::TextureCoal;
     }
     else if (type == BlockType::CRAFTER)
     {
@@ -86,5 +96,9 @@ Texture2D getTextureByType(BlockType type){
     else if (type == BlockType::TORCH)
     {
         return Textures::TextureTorch;
+    }
+    else if (type == BlockType::WOODENPLANK)
+    {
+        return Textures::TextureWoodenplank;
     }
 return Textures::TextureNo;}

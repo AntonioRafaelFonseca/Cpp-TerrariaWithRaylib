@@ -11,7 +11,9 @@ enum BlockType : unsigned char
   LEAF,
   BARK,
   TORCH,
-  CRAFTER
+  CRAFTER,
+  COAL,
+  WOODENPLANK
 };
 
 enum LightSourceType : unsigned char

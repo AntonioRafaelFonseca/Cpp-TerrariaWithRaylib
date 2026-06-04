@@ -1,7 +1,9 @@
 #pragma once
+#include <queue>
 #include <vector>
 #include <iostream>
 #include <iterator>
+#include <print>
 #include "raylib.h"
 #include "perlin.hpp"
 #include "inventory.hpp"
@@ -47,9 +49,17 @@ class Blocks
             {
                 if(rand() % 50 == 0)
                 {
+                  if (rand()%2 == 0)
+                  {
                     peek(x, y).type = BlockType::STONE;
+                  }
+                  else
+                  {
+                    peek(x, y).type = BlockType::COAL;
+                  }
                     peek(x, y).LightSource = LightSourceType::NOLIGHT;
                 }
+                
                 else
                 {
                     peek(x, y).type = BlockType::GRASS;
@@ -107,7 +117,7 @@ class Blocks
     }
   }
 
-  void update(LayerIndex li, int px, int py, Inventory& inv)
+  void update(LayerIndex li, int px, int py, Inventory& inv, int& time)
 {
     int mouseX = GetMouseX();
     int mouseY = GetMouseY();
@@ -142,7 +152,11 @@ class Blocks
                 }
                 else
                 {
-                    std::cout << "Recipe does not match: \n" << (int)crafter.blocks[0] << ' ' << (int)crafter.blocks[1];
+                    std::cout << "Recipe does not match: \n";
+                    for (auto b : crafter.blocks)
+                    {
+                      std::cout << b;
+                    }
                 }
                 updateInventory(inv);
                 return;
@@ -161,23 +175,27 @@ class Blocks
             if (inbounds(xInventoryindex, 0, 5) &&
                 inbounds(mouseY, GetScreenHeight() - Textures::TextureSlot.height, GetScreenHeight()))
             {
-                inv.mouseSelected = xInventoryindex;
+                inv.selected = xInventoryindex;
             }
             // Clicking world object with UI item selected
-            else if (validPos(xindex, yindex) && inv.mouseSelected <= 5)
+            else if (validPos(xindex, yindex) && inv.selected <= 5)
             {
                 BlockType targetedType = (li == 'b') ? peekBackLayer(xindex, yindex).type : peek(xindex, yindex).type;
                 
-                if (targetedType == CRAFTER && inv.inventory[inv.mouseSelected].amount > 0)
+                if (targetedType == CRAFTER && inv.inventory[inv.selected].amount > 0)
                 {
-                    crafter.add(inv.inventory[inv.mouseSelected].Item.type);
-                    inv.inventory[inv.mouseSelected].amount--;
-                    updateInventory(inv);
+                  if(time % 15 == 0)
+                  {
+                      time = 0;
+                      crafter.add(inv.inventory[inv.selected].Item.type);
+                      inv.inventory[inv.selected].amount--;
+                      updateInventory(inv);
+                      time++;
+                    }
                 }
             }
         }
     }
-    // 3. STANDARD PLAY MODE (Not holding S, not trying to craft)
     else
     {
         if (mousePressedLeft)
@@ -192,8 +210,8 @@ class Blocks
                         else if (li == 'b') peekBackLayer(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
                         
                         inv.inventory[inv.selected].amount -= 1;
-                    }
-                    updateBrightness();
+                        QUICKupdateBrightness(px, py);
+                      }
                 }
                 updateInventory(inv);
             }
@@ -212,7 +230,7 @@ class Blocks
                         inv.inventory[inventoryIndex].Item.type = targetBlock.type;
                         inv.inventory[inventoryIndex].amount += 1;
                     }
-                    updateBrightness();
+                    QUICKupdateBrightness(px, py);
                     targetBlock.type = AIR;
                 }
                 updateInventory(inv);
@@ -249,54 +267,98 @@ class Blocks
     }
   }
   }
+  void QUICKupdateBrightness(int Bx, int By)
+{
+    // Calculate tile boundaries currently visible on the screen
+    int startX = std::max(0, Bx / 32 - 2);
+    int endX = std::min(width, (Bx + GetScreenWidth()) / 32 + 2);
+    int startY = std::max(0, By / 32 - 2);
+    int endY = std::min(height, (By + GetScreenHeight()) / 32 + 2);
+
+    int directions[4][2] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
+
+    // Only update tiles within the camera view
+    for (int y = startY; y < endY; y++)
+    {
+        for (int x = startX; x < endX; x++)
+        {
+            if (peek(x, y).LightSource == LightSourceType::NATURAL || peek(x, y).type == BlockType::TORCH)
+            {
+                peek(x, y).Brightness = 255;
+                continue;
+            }
+
+            int maxB = 25; // Default minimum darkness
+            for (auto& d : directions)
+            {
+                int nx = x + d[0];
+                int ny = y + d[1];
+                if (!validPos(nx, ny)) continue;
+
+                int loss = peek(x, y).isSolid() ? 45 : 20;
+                int candidate = (int)peek(nx, ny).Brightness - loss;
+                if (candidate > maxB) maxB = candidate;
+            }
+            peek(x, y).Brightness = (unsigned char)maxB;
+        }
+    }
+}
   void updateBrightness()
   {
-    int width = getWidth();
-    int height = getHeight();
-
-    int surr[9][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}, {-1, -1}, {1, 1}, {1, -1}, {-1, 1}, {0, 0}};
-    for (int y=0; y < height; y++)
-    {
-      for (int x = 0; x < width; x++)
+      std::queue<std::pair<int, int>> lightQueue;
+  
+      // Step 1: Reset all non-natural light to minimum darkness, 
+      // and find all starting light sources (Sky/Torches)
+      for (int y = 0; y < height; y++)
       {
-        int n = 0;
-        int sum = 0;
-        int maxB = 0;
-        bool foundL = false;
-        for(auto s : surr)
-        {
-          if(!validPos(x+s[0],y+s[1])) continue;
-
-          if(peek(x+s[0], y+s[1]).LightSource == NATURAL || peek(x+s[0], y+s[1]).type == TORCH)
+          for (int x = 0; x < width; x++)
           {
-            peek(x, y).Brightness = 255;
-            foundL = true;
-            break;
+              if (peek(x, y).LightSource == LightSourceType::NATURAL || peek(x, y).type == BlockType::TORCH)
+              {
+                  peek(x, y).Brightness = 255;
+                  lightQueue.push({x, y});
+              }
+              else
+              {
+                  peek(x, y).Brightness = 5; // Base minimum darkness
+              }
           }
-          else
-          {
-            if(peek(x+s[0], y+s[1]).Brightness > maxB)
-            {
-              maxB = peek(x+s[0], y+s[1]).Brightness;
-            }
-            sum += peek(x+s[0], y+s[1]).Brightness;
-            n++;
-          }
-        }
-        if (!foundL)
-        {
-            int novoBrilho = maxB - std::min(255, sum / n);
-            if (novoBrilho < 25) novoBrilho = 25; // Garante o mínimo de escuridão
-            int diferenca = std::abs((int)peek(x, y).Brightness - novoBrilho);
-            if (diferenca < 10) continue;
-
-            peek(x, y).Brightness = (unsigned char)novoBrilho;
-        }
       }
-    }
+  
+      // Step 2: Flood fill outwards
+      int directions[4][2] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}}; // Up, Down, Left, Right
+      int lightDrop = 32; // How much darker the light gets per block step
+  
+      while (!lightQueue.empty())
+      {
+          auto [cx, cy] = lightQueue.front();
+          lightQueue.pop();
+  
+          int currentBrightness = peek(cx, cy).Brightness;
+  
+          for (auto& d : directions)
+          {
+              int nx = cx + d[0];
+              int ny = cy + d[1];
+  
+              if (!validPos(nx, ny)) continue;
+  
+              // Solid blocks block light more heavily
+              int drop = peek(nx, ny).isSolid() ? (lightDrop * 2) : lightDrop;
+              int expectedBrightness = currentBrightness - drop;
+  
+              if (expectedBrightness < 25) expectedBrightness = 25;
+  
+              // If the neighboring block is darker than our light wave, illuminate it!
+              if (peek(nx, ny).Brightness < expectedBrightness)
+              {
+                  peek(nx, ny).Brightness = (unsigned char)expectedBrightness;
+                  lightQueue.push({nx, ny}); // Push neighbor to keep flooding
+              }
+          }
+      }
   }
-
-  int getInventoryIndexByType(BlockType type, Inventory inventory)
+  int getInventoryIndexByType(BlockType type, Inventory& inventory)
   {
     if(type == NONE) return 255;
     for (size_t i=0; i<inventory.size; i++)

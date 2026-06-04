@@ -11,8 +11,10 @@ types = [
   'LEAF',
   'BARK',
   'TORCH',
-  'CRAFTER'
-]
+  'CRAFTER',
+  'COAL',
+  'WoodenPlank'.upper()
+  ]
 
 arr.append('#pragma once\n#include "raylib.h"\n')
 arr.append('struct Textures\n{')
