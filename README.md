@@ -1,7 +1,7 @@
 # Terraria copy with c++ and raylib
 
 no cares about how it's made\
-if you do\
+if you do:
 * c++
 * raylib
 * not having school
