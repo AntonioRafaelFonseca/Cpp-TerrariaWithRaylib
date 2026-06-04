@@ -13,9 +13,11 @@ public:
   float G = 1.0f;
   Inventory inventory;
   LayerIndex layer = { 0b00000001 };
+  bool damage = false;
 
   void update(Blocks& b, unsigned char& pb)
   {
+    if(IsKeyDown(KEY_P)) b.Entities.push_back(Entity(COCK, this->x, this->y));
     
     if(IsKeyPressed(KEY_UP))
     {
@@ -52,7 +54,12 @@ public:
     {
       if (b.peek((int)(this->x + 20) / 32, yindex + 1).isSolid()) contact = true;
     }
-    
+    if(contact && this->vy > 20)
+    {
+      damage = true;
+      this->life--;
+    }
+    else damage = false;
     if (contact && this->vy > 0)
     {
       this->vy = 0;

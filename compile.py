@@ -1,8 +1,9 @@
 import subprocess
+import os
 
 compile_cmd = [
     "g++",
-    "main.cpp",
+    "main.cpp", "entity.cpp",
     "-o", "main.exe",
     "-IC:\\raylib\\raylib\\src",  # path to raylib.h
     "-LC:\\raylib\\raylib\\src",  # path to libraylib.a
@@ -30,3 +31,5 @@ else:
         print("STDOUT:\n", result.stdout)
     if result.stderr:
         print("STDERR:\n", result.stderr)
+
+if input('clean') != 'n' : os.system('cls')

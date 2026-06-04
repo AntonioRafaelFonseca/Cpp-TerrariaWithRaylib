@@ -3,14 +3,13 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
-#include "raylib.h"
 #include "perlin.hpp"
 #include "inventory.hpp"
 #include "block_type.hpp"
-#include "textures.hpp"
 #include "crafter.hpp"
+#include "entity.hpp"
 
-bool inbounds(int n, int min, int max)
+inline bool inbounds(int n, int min, int max)
 {
   if(n<max && n>=min) return true;
   return false;
@@ -22,6 +21,7 @@ class Blocks
   Crafter crafter;
   std::vector<Block> blocks;
   std::vector<SmallBlock> BackLayerBlocks;
+  std::vector<Entity> Entities;
   Block  unusedBlock {.type = BlockType::NONE};
   SmallBlock  unusedBBlock {.type = BlockType::NONE};
   int width = 1000;
@@ -114,6 +114,7 @@ class Blocks
         }
       }
     }
+    
   }
 
   void update(LayerIndex li, int px, int py, Inventory& inv, int& time)
@@ -268,11 +269,10 @@ class Blocks
   }
   void QUICKupdateBrightness(int Bx, int By)
 {
-    // Calculate tile boundaries currently visible on the screen
-    int startX = std::max(0, Bx / 32 - 2);
-    int endX = std::min(width, (Bx + GetScreenWidth()) / 32 + 2);
-    int startY = std::max(0, By / 32 - 2);
-    int endY = std::min(height, (By + GetScreenHeight()) / 32 + 2);
+    int startX = std::max(0, Bx / 32 - 2)-10;
+    int endX = std::min(width, (Bx + GetScreenWidth()) / 32 + 2)+10;
+    int startY = std::max(0, By / 32 - 2)-10;
+    int endY = std::min(height, (By + GetScreenHeight()) / 32 + 2)+10;
 
     int directions[4][2] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
 
@@ -287,7 +287,7 @@ class Blocks
                 continue;
             }
 
-            int maxB = 25; // Default minimum darkness
+            int maxB = 0; // Default minimum darkness
             for (auto& d : directions)
             {
                 int nx = x + d[0];

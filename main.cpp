@@ -46,7 +46,25 @@ void drawPlayer(Player& p, unsigned char pb)
     DrawText(std::to_string(p.inventory.inventory[i].amount).c_str(), (float)i*Textures::TextureSlot.width, (float)GetScreenHeight()-Textures::TextureSlot.height, 12, RAYWHITE);
   }
   DrawTexture(Textures::TexturePlayer, GetScreenWidth() / 2, GetScreenHeight() / 2, {pb, pb, pb, 255});
+  if (p.damage)
+  {
+    DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), RED);
+  }
+
 }
+
+void drawEntities(Blocks& b, Player& p)
+{
+  for (auto& e : b.Entities)
+  {
+    e.update(b);
+    int camX = p.x - (GetScreenWidth() / 2);
+    int camY = p.y - (GetScreenHeight() / 2);
+    e.draw(camX, camY);
+  }
+}
+
+
 
 int max(int a, int b) {
   if(a>b) return a;
@@ -107,6 +125,7 @@ int main()
       ClientPlayer.update(b, pb);
 
       b.draw(camX, camY);
+      drawEntities(b, ClientPlayer);
       drawPlayer(ClientPlayer, pb);
     }
     DrawFPS(100, 100);

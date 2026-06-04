@@ -29,7 +29,7 @@ public:
 };
 
 
-void updateInventory(Inventory& inv)
+inline void updateInventory(Inventory& inv)
 {
   for(int i=0;i< sizeof(inv.inventory)/sizeof(inv.inventory[0]);i++)
   {

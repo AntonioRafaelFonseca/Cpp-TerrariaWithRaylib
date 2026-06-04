@@ -1,11 +1,13 @@
 #pragma once
 #include "raylib.h"
+#include "block_type.hpp"
 struct Textures
 {
 static inline Texture2D TextureAir;
 static inline Texture2D TextureBackground;
 static inline Texture2D TextureBark;
 static inline Texture2D TextureCoal;
+static inline Texture2D TextureCock;
 static inline Texture2D TextureCrafter;
 static inline Texture2D TextureDirt;
 static inline Texture2D TextureGrass;
@@ -25,6 +27,7 @@ TextureAir = LoadTexture("imgs/AirTexture.png");
 TextureBackground = LoadTexture("imgs/Background.png");
 TextureBark = LoadTexture("imgs/BarkTexture.png");
 TextureCoal = LoadTexture("imgs/CoalTexture.png");
+TextureCock = LoadTexture("imgs/CockTexture.png");
 TextureCrafter = LoadTexture("imgs/CrafterTexture.png");
 TextureDirt = LoadTexture("imgs/DirtTexture.png");
 TextureGrass = LoadTexture("imgs/GrassTexture.png");
@@ -45,6 +48,7 @@ UnloadTexture(TextureAir);
 UnloadTexture(TextureBackground);
 UnloadTexture(TextureBark);
 UnloadTexture(TextureCoal);
+UnloadTexture(TextureCock);
 UnloadTexture(TextureCrafter);
 UnloadTexture(TextureDirt);
 UnloadTexture(TextureGrass);
@@ -60,7 +64,7 @@ UnloadTexture(TextureTorch);
 UnloadTexture(TextureWoodenplank);
 }
 };
-Texture2D getTextureByType(BlockType type){
+inline Texture2D getTextureByType(BlockType type){
     if (type == BlockType::AIR)
     {
         return Textures::TextureAir;

@@ -16,7 +16,7 @@ types = [
   'WoodenPlank'.upper()
   ]
 
-arr.append('#pragma once\n#include "raylib.h"\n')
+arr.append('#pragma once\n#include "raylib.h"\n#include "block_type.hpp"\n')
 arr.append('struct Textures\n{')
 for i in os.listdir("imgs/"):
   fileName = "Texture" + i.capitalize().replace("Texture", "").replace("texture", "").replace(".png", "")
@@ -34,7 +34,7 @@ for i in os.listdir("imgs/"):
   arr.append(f"\nUnloadTexture({fileName});")
 arr.append("\n}\n};\n")
 
-arr.append("Texture2D getTextureByType(BlockType type){\n")
+arr.append("inline Texture2D getTextureByType(BlockType type){\n")
 first = True
 for i in os.listdir("imgs/"):
     if not i.endswith(".png"): continue
