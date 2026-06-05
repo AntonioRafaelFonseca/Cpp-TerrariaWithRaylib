@@ -126,8 +126,8 @@ int main()
     else if (GS == MENU)
     {
       ClearBackground({66, 162, 214, 255});
-      DrawTextEx(GetFontDefault(), "Eartharia", (Vector2){GetScreenWidth()/2, GetScreenHeight()/2}, 32, 5, GREEN);
-      DrawTextEx(GetFontDefault(), "Press 's' to start", (Vector2){GetScreenWidth()/2, GetScreenHeight()/2+32}, 16, 5, DARKGREEN);
+      DrawTextEx(GetFontDefault(), "Eartharia", (Vector2){(float)GetScreenWidth()/2, (float)GetScreenHeight()/2}, 32, 5, GREEN);
+      DrawTextEx(GetFontDefault(), "Press 's' to start", {(float)GetScreenWidth()/2, (float)GetScreenHeight()/2+32}, 16, 5, DARKGREEN);
       if(IsKeyPressed(KEY_S)) GS = RUNNING;
     }
     DrawFPS(10, 30);
