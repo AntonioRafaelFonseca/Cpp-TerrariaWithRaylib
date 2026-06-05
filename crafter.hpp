@@ -18,6 +18,7 @@ class Crafter
 private:
   BlockType torch[5] = {WOODENPLANK, COAL, NONE, NONE, NONE};
   BlockType woodP[5] = {BARK, BARK, BARK, BARK, NONE};
+  BlockType fence[5] = {WOODENPLANK, WOODENPLANK, NONE, NONE, NONE};
   int index = 0;
 public:
   BlockType blocks[5] = {NONE, NONE, NONE, NONE, NONE};
@@ -32,6 +33,11 @@ public:
     {
       std::fill(std::begin(blocks), std::end(blocks), BlockType::NONE);
       return {WOODENPLANK, 8};
+    }
+    if (std::equal(std::begin(blocks), std::end(blocks), std::begin(fence)))
+    {
+      std::fill(std::begin(blocks), std::end(blocks), BlockType::NONE);
+      return {NORMALFENCE, 4};
     }
     return {NONE, 0};
   }

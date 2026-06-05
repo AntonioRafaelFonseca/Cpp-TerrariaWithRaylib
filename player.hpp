@@ -10,6 +10,7 @@ public:
   float y = 2000;
   float vy = 0;
   int life = 10;
+  int max_life = 10;
   float G = 1.0f;
   Inventory inventory;
   LayerIndex layer = { 0b00000001 };
@@ -22,7 +23,6 @@ public:
     if(IsKeyPressed(KEY_UP))
     {
       this->layer+=1;
-      DrawText("Pressed AND Updated  \t Player-> Line 26", 10, 10, 10, BLACK);
     }
 
     float speed = 3.0f;
@@ -77,6 +77,8 @@ public:
     {
       if(!b.peek(xindexTeto, yindex - 1).isSolid()) this->vy = Jspeed;
     }
+
+    b.call = IsKeyDown(KEY_C);
     
     this->y += this->vy;
   }

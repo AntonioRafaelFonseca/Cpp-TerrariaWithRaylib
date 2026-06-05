@@ -8,6 +8,7 @@ static inline Texture2D TextureBackground;
 static inline Texture2D TextureBark;
 static inline Texture2D TextureCoal;
 static inline Texture2D TextureCock;
+static inline Texture2D TextureConectedfence;
 static inline Texture2D TextureCrafter;
 static inline Texture2D TextureDirt;
 static inline Texture2D TextureGrass;
@@ -15,6 +16,7 @@ static inline Texture2D TextureHeart0;
 static inline Texture2D TextureHeart1;
 static inline Texture2D TextureLeaf;
 static inline Texture2D TextureNo;
+static inline Texture2D TextureNormalfence;
 static inline Texture2D TexturePlayer;
 static inline Texture2D TextureSlot;
 static inline Texture2D TextureSlotarrow;
@@ -28,6 +30,7 @@ TextureBackground = LoadTexture("imgs/Background.png");
 TextureBark = LoadTexture("imgs/BarkTexture.png");
 TextureCoal = LoadTexture("imgs/CoalTexture.png");
 TextureCock = LoadTexture("imgs/CockTexture.png");
+TextureConectedfence = LoadTexture("imgs/ConectedFence.png");
 TextureCrafter = LoadTexture("imgs/CrafterTexture.png");
 TextureDirt = LoadTexture("imgs/DirtTexture.png");
 TextureGrass = LoadTexture("imgs/GrassTexture.png");
@@ -35,6 +38,7 @@ TextureHeart0 = LoadTexture("imgs/heart0.png");
 TextureHeart1 = LoadTexture("imgs/heart1.png");
 TextureLeaf = LoadTexture("imgs/LeafTexture.png");
 TextureNo = LoadTexture("imgs/NO.png");
+TextureNormalfence = LoadTexture("imgs/NormalFence.png");
 TexturePlayer = LoadTexture("imgs/PlayerTexture.png");
 TextureSlot = LoadTexture("imgs/Slot.png");
 TextureSlotarrow = LoadTexture("imgs/SlotArrowTexture.png");
@@ -49,6 +53,7 @@ UnloadTexture(TextureBackground);
 UnloadTexture(TextureBark);
 UnloadTexture(TextureCoal);
 UnloadTexture(TextureCock);
+UnloadTexture(TextureConectedfence);
 UnloadTexture(TextureCrafter);
 UnloadTexture(TextureDirt);
 UnloadTexture(TextureGrass);
@@ -56,6 +61,7 @@ UnloadTexture(TextureHeart0);
 UnloadTexture(TextureHeart1);
 UnloadTexture(TextureLeaf);
 UnloadTexture(TextureNo);
+UnloadTexture(TextureNormalfence);
 UnloadTexture(TexturePlayer);
 UnloadTexture(TextureSlot);
 UnloadTexture(TextureSlotarrow);
@@ -77,6 +83,10 @@ inline Texture2D getTextureByType(BlockType type){
     {
         return Textures::TextureCoal;
     }
+    else if (type == BlockType::CONECTEDFENCE)
+    {
+        return Textures::TextureConectedfence;
+    }
     else if (type == BlockType::CRAFTER)
     {
         return Textures::TextureCrafter;
@@ -92,6 +102,10 @@ inline Texture2D getTextureByType(BlockType type){
     else if (type == BlockType::LEAF)
     {
         return Textures::TextureLeaf;
+    }
+    else if (type == BlockType::NORMALFENCE)
+    {
+        return Textures::TextureNormalfence;
     }
     else if (type == BlockType::STONE)
     {

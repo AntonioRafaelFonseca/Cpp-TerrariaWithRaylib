@@ -13,7 +13,9 @@ enum BlockType : unsigned char
   TORCH,
   CRAFTER,
   COAL,
-  WOODENPLANK
+  WOODENPLANK,
+  NORMALFENCE,
+  CONECTEDFENCE
 };
 
 enum LightSourceType : unsigned char
@@ -23,7 +25,7 @@ enum LightSourceType : unsigned char
   TYPETORCH
 };
 
-struct Block
+struct Block // 3 bytes instead of 8/9 idk
 {
   BlockType type;
   LightSourceType LightSource = NOLIGHT;
@@ -31,7 +33,7 @@ struct Block
   inline bool isSolid();
 };
 
-struct SmallBlock
+struct SmallBlock // 1 byte
 {
   BlockType type = AIR;
 };

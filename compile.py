@@ -1,8 +1,10 @@
 import subprocess
 import os
+import pyautogui
+import time
 
 compile_cmd = [
-    "g++",
+    "g++", "-std=c++20",
     "main.cpp", "entity.cpp",
     "-o", "main.exe",
     "-IC:\\raylib\\raylib\\src",  # path to raylib.h
@@ -32,4 +34,5 @@ else:
     if result.stderr:
         print("STDERR:\n", result.stderr)
 
-if input('clean') != 'n' : os.system('cls')
+if input('clean') != 'n' :
+    os.system('cls')

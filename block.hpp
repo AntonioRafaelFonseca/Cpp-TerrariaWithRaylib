@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <iterator>
+#include <variant>
 #include "perlin.hpp"
 #include "inventory.hpp"
 #include "block_type.hpp"
@@ -27,6 +28,7 @@ class Blocks
   int width = 1000;
   int height = 200;
   bool loading = true;
+  bool call = false;
   void setup()
   {
     loading = true;
@@ -65,11 +67,11 @@ class Blocks
                     peek(x, y).LightSource = LightSourceType::NOLIGHT;
                 }
             }
-        }
-      int surr[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
-      for(int y=0;y<height;y++)
-      {
-        for(int x=0;x<width;x++)
+          }
+          int surr[4][2] = {{-1, 0}, {0, -1}, {1, 0}, {0, 1}};
+          for(int y=0;y<height;y++)
+          {
+            for(int x=0;x<width;x++)
         {
           if(peek(x, y).type == BlockType::STONE)
           {
@@ -82,7 +84,8 @@ class Blocks
         }
       }
       generateTrees();
-    updateBrightness();
+      updateBrightness();
+      spawnEntities();
     loading = false;
   }
   void draw(int px, int py)
@@ -116,26 +119,39 @@ class Blocks
     }
     
   }
-
-  void update(LayerIndex li, int px, int py, Inventory& inv, int& time)
+  
+  void update(LayerIndex li, int pX, int pY, Inventory& inv, int& time)
 {
-    int mouseX = GetMouseX();
-    int mouseY = GetMouseY();
-    bool spacePressed = IsKeyDown(KEY_SPACE);
-    bool interacting = IsKeyDown(KEY_S);
-
-    bool mousePressedLeft = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
-    bool mousePressedRight = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
-
-    int xindex = (int)(mouseX + px) / 32;
-    int yindex = (int)(mouseY + py) / 32;
-
-    // 1. CHECK CRAFTING FIRST (Space + Left Click)
-    if (mousePressedLeft && spacePressed)
-    {
-        if (validPos(xindex, yindex))
+  if(this->call)
+  {
+    makeEmMove(pX, pY);
+  }
+  for(auto& e : this->Entities)
+  { 
+   e.update(*this);
+  }
+  std::erase_if(this->Entities, [](const Entity& e) {
+    return e.life <= 0;
+});
+  int px = pX - (GetScreenWidth() / 2);
+  int py = pY - (GetScreenHeight() / 2);
+  int mouseX = GetMouseX();
+  int mouseY = GetMouseY();
+  bool spacePressed = IsKeyDown(KEY_SPACE);
+  bool interacting = IsKeyDown(KEY_S);
+  
+  bool mousePressedLeft = IsMouseButtonDown(MOUSE_BUTTON_LEFT);
+  bool mousePressedRight = IsMouseButtonDown(MOUSE_BUTTON_RIGHT);
+  
+  int xindex = (int)(mouseX + px) / 32;
+  int yindex = (int)(mouseY + py) / 32;
+  
+  // 1. CHECK CRAFTING FIRST (Space + Left Click)
+  if (mousePressedLeft && spacePressed)
+  {
+    if (validPos(xindex, yindex))
         {
-            BlockType targetedType = (li == 'b') ? peekBackLayer(xindex, yindex).type : peek(xindex, yindex).type;
+          BlockType targetedType = (li == 'b') ? peekBackLayer(xindex, yindex).type : peek(xindex, yindex).type;
             
             if (targetedType == CRAFTER)
             {
@@ -148,9 +164,9 @@ class Blocks
                         inv.inventory[invIndex].Item.type = craftedItem.type;
                         inv.inventory[invIndex].amount += craftedItem.amount;
                         std::cout << "Successfully crafted and added to inventory!\n";
+                      }
                     }
-                }
-                else
+                    else
                 {
                     std::cout << "Recipe does not match: \n";
                     for (auto b : crafter.blocks)
@@ -169,103 +185,162 @@ class Blocks
     {
         if (mousePressedLeft)
         {
-            int xInventoryindex = mouseX / Textures::TextureSlot.width;
+          int xInventoryindex = mouseX / Textures::TextureSlot.width;
             
-            // Selecting slot in UI
-            if (inbounds(xInventoryindex, 0, 5) &&
-                inbounds(mouseY, GetScreenHeight() - Textures::TextureSlot.height, GetScreenHeight()))
-            {
-                inv.selected = xInventoryindex;
-            }
-            // Clicking world object with UI item selected
+          // Selecting slot in UI
+          if (inbounds(xInventoryindex, 0, 5) &&
+          inbounds(mouseY, GetScreenHeight() - Textures::TextureSlot.height, GetScreenHeight()))
+          {
+            inv.selected = xInventoryindex;
+          }
+          // Clicking world object with UI item selected
             else if (validPos(xindex, yindex) && inv.selected <= 5)
             {
-                BlockType targetedType = (li == 'b') ? peekBackLayer(xindex, yindex).type : peek(xindex, yindex).type;
+              BlockType targetedType = (li == 'b') ? peekBackLayer(xindex, yindex).type : peek(xindex, yindex).type;
                 
                 if (targetedType == CRAFTER && inv.inventory[inv.selected].amount > 0)
                 {
                   if(time % 15 == 0)
                   {
-                      time = 0;
+                    time = 0;
                       crafter.add(inv.inventory[inv.selected].Item.type);
                       inv.inventory[inv.selected].amount--;
                       updateInventory(inv);
                       time++;
                     }
                 }
-            }
+              }
         }
     }
     else
     {
-        if (mousePressedLeft)
+      if (mousePressedLeft)
         {
             if (validPos(xindex, yindex))
             {
-                if ((peek(xindex, yindex).type == AIR && li == 'f') || (peekBackLayer(xindex, yindex).type == AIR && li == 'b'))
+                if (li == 'f' && peek(xindex, yindex).type == AIR)
                 {
                     if (inv.inventory[inv.selected].Item.type != NONE)
                     {
-                        if (li == 'f')      peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
-                        else if (li == 'b') peekBackLayer(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
-                        
+                        peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
                         inv.inventory[inv.selected].amount -= 1;
                         QUICKupdateBrightness(px, py);
-                      }
+                    }
+                }
+                else if (li == 'b' && peekBackLayer(xindex, yindex).type == AIR)
+                {
+                    if (inv.inventory[inv.selected].Item.type != NONE)
+                    {
+                        peekBackLayer(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
+                        inv.inventory[inv.selected].amount -= 1;
+                        QUICKupdateBrightness(px, py);
+                    }
                 }
                 updateInventory(inv);
             }
         }
         if (mousePressedRight)
         {
-            if (validPos(xindex, yindex))
-            {
-                Block& targetBlock = (li == 'f') ? peek(xindex, yindex) : (Block&)peekBackLayer(xindex, yindex);
+          if (validPos(xindex, yindex))
+          {
+            BlockType& targetBlock = (li == 'f') ? peek(xindex, yindex).type : peekBackLayer(xindex, yindex).type;
                 
-                if (targetBlock.type != AIR)
+                if (targetBlock != AIR)
                 {
-                    int inventoryIndex = getInventoryIndexByType(targetBlock.type, inv);
+                  if (targetBlock == CONECTEDFENCE) targetBlock = NORMALFENCE;
+                    int inventoryIndex = getInventoryIndexByType(targetBlock, inv);
                     if (inventoryIndex != 255)
                     {
-                        inv.inventory[inventoryIndex].Item.type = targetBlock.type;
+                        inv.inventory[inventoryIndex].Item.type = targetBlock;
                         inv.inventory[inventoryIndex].amount += 1;
                     }
                     QUICKupdateBrightness(px, py);
-                    targetBlock.type = AIR;
+                    targetBlock = AIR;
                 }
                 updateInventory(inv);
             }
+          }
         }
-    }
-    
     if (IsKeyPressed(KEY_LEFT))  inv.selected--;
     if (IsKeyPressed(KEY_RIGHT)) inv.selected++;
-}
+  if(mousePressedLeft || mousePressedRight) updateBlocks(px, py);
+  }
   void updateBlocks(int px=0, int py=0)
   {
-    for(int y=0;y<getHeight()-1;y++)
+    for(int y=0; y<getHeight()-1; y++)
     {
-    for(int x=0;x<getWidth()-1;x++)
-    {
-      int Bx = x*32-px;
-      int By = y*32-py;
-      if (Bx < -32 || Bx > GetScreenWidth() || By < -32 || By > GetScreenHeight()) continue;
+      for(int x=0; x<getWidth()-1; x++)
+      {
+        int Bx = x*32-px;
+        int By = y*32-py;
+        
+        // Screen boundary guard check
+        if (Bx < -32 || Bx > GetScreenWidth() || By < -32 || By > GetScreenHeight()) continue;
+        if (peek(x, y).type == NONE) continue;
 
-      if (peek(x, y).type == AIR)
-      {
-        continue;
-      }
-      else if (peek(x, y).type == GRASS)
-      {
-        if(!validPos(0, y-1)) continue;
-        if(peek(x, y-1).type != AIR) peek(x, y).type = DIRT;
-      }
-      else if(peek(x, y).type == TORCH)
-      {
-        peek(x, y).LightSource == TYPETORCH;
+        // --- FRONT LAYER PROCESSING ---
+        if (peek(x, y).type == GRASS)
+        {
+          if(validPos(x, y-1) && peek(x, y-1).type != AIR) 
+          {
+             peek(x, y).type = DIRT;
+          }
+        }
+        else if(peek(x, y).type == TORCH)
+        {
+          peek(x, y).LightSource = LightSourceType::TYPETORCH; // Fixed assignment syntax typo
+        }
+        else if(peek(x, y).type == NORMALFENCE)
+        {
+          if(validPos(x+1, y) && peek(x+1, y).type == NORMALFENCE)
+          {
+            peek(x, y).type = CONECTEDFENCE;
+            peek(x+1, y).type = CONECTEDFENCE;
+          }
+          if(validPos(x-1, y) && peek(x-1, y).type == NORMALFENCE)
+          {
+            peek(x, y).type = CONECTEDFENCE;
+            peek(x-1, y).type = CONECTEDFENCE;
+          }
+        }
+
+        // --- BACK LAYER PROCESSING ---
+        // Removed the front-layer AIR block guard so this code actually runs!
+        if(peekBackLayer(x, y).type == NORMALFENCE)
+        {
+          if(validPos(x+1, y) && peekBackLayer(x+1, y).type == NORMALFENCE)
+          {
+            peekBackLayer(x, y).type = CONECTEDFENCE;
+            peekBackLayer(x+1, y).type = CONECTEDFENCE;
+          }
+          if(validPos(x-1, y) && peekBackLayer(x-1, y).type == NORMALFENCE)
+          {
+            peekBackLayer(x, y).type = CONECTEDFENCE;
+            peekBackLayer(x-1, y).type = CONECTEDFENCE;
+          }
+        }
+        if (peekBackLayer(x, y).type == CONECTEDFENCE)
+        {
+          if(validPos(x-1, y) && validPos(x+1, y)
+          && peekBackLayer(x-1, y).type != CONECTEDFENCE
+          && peekBackLayer(x+1, y).type != CONECTEDFENCE)
+          {
+            peekBackLayer(x, y).type = NORMALFENCE;
+          }
+        }
+        if (peek(x, y).type == CONECTEDFENCE)
+        {
+          if(
+          validPos(x-1, y) && validPos(x+1, y)
+          && peek(x-1, y).type != CONECTEDFENCE
+          && peek(x+1, y).type != CONECTEDFENCE
+        )
+          {
+            peek(x, y).type = NORMALFENCE;
+          }
+        }
       }
     }
-  }
   }
   void QUICKupdateBrightness(int Bx, int By)
 {
@@ -306,7 +381,7 @@ class Blocks
   {
       std::queue<std::pair<int, int>> lightQueue;
   
-      // Step 1: Reset all non-natural light to minimum darkness, 
+      // Step 1: Reset all non-natural light to minimum darkness,
       // and find all starting light sources (Sky/Torches)
       for (int y = 0; y < height; y++)
       {
@@ -479,4 +554,58 @@ class Blocks
     return this->height;
   }
 
+  void spawnEntities()
+  {
+    for (int x = 0; x < getWidth(); x++)
+    {
+        if (rand() % 100 < 1)
+        {
+            for (int y = 0; y < getHeight(); y++)
+            {
+                if (this->peek(x, y).type != AIR) 
+                {
+                    int pixelX = x * 32;
+                    int pixelY = (y - 3) * 32;
+
+                    this->Entities.push_back(Entity(COCK, pixelX, pixelY));
+                    break; 
+                }
+            }
+        }
+    }
+  }
+  void spawnEntity()
+  {
+    for (int x = 0; x < getWidth(); x++)
+    {
+        if (rand() % 100 < 1)
+        {
+            for (int y = 0; y < getHeight(); y++)
+            {
+                if (this->peek(x, y).type != AIR) 
+                {
+                    int pixelX = x * 32;
+                    int pixelY = (y - 3) * 32;
+
+                    this->Entities.push_back(Entity(COCK, pixelX, pixelY));
+                    break; 
+                }
+            }
+            return;
+        }
+    }
+  }
+  void makeEmMove(int px, int py)
+  {
+    for (auto& e : Entities)
+    {
+      int dx = (int) std::abs(px-e.x);
+      int dy = (int) std::abs(py-e.y);
+      int d = dx*dx+dy*dy;
+      if (d < 102400)
+      {
+        e.moveTowards(px);
+      }
+    }
+  }
 };

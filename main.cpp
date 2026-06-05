@@ -23,11 +23,6 @@ bool inBounds(int n, int min, int max)
 
 void drawPlayer(Player& p, unsigned char pb)
 {
-  for (int i=0;i<p.life;i++)
-  {
-    if (i%2==0) DrawTexture(Textures::TextureHeart0, i*32-10, 16, WHITE);
-    else DrawTexture(Textures::TextureHeart1, i*32-42, 16, WHITE);
-  }
   for(int i=0;i<5;i++)
   {
     DrawTexture(Textures::TextureSlotarrow, p.inventory.selected*32, (float)GetScreenHeight()-64, WHITE);
@@ -50,16 +45,17 @@ void drawPlayer(Player& p, unsigned char pb)
   {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), RED);
   }
-
+  if(p.layer == 'b') DrawText("Current Layer: Back Layer", 16, 16, 32, BLACK); else DrawText("Current Layer: Front Layer", 16, 16, 16, BLACK);
+  DrawRectangle(GetScreenWidth() / 2, (GetScreenHeight() / 2)-2, 32, 5, GRAY);
+  DrawRectangle(GetScreenWidth() / 2, (GetScreenHeight() / 2)-2, p.life*32/p.max_life, 5, RED);
 }
 
 void drawEntities(Blocks& b, Player& p)
 {
+  int camX = p.x - (GetScreenWidth() / 2);
+  int camY = p.y - (GetScreenHeight() / 2);
   for (auto& e : b.Entities)
   {
-    e.update(b);
-    int camX = p.x - (GetScreenWidth() / 2);
-    int camY = p.y - (GetScreenHeight() / 2);
     e.draw(camX, camY);
   }
 }
@@ -86,8 +82,8 @@ int main()
   Player ClientPlayer;
   SetTargetFPS(30);
   unsigned char pb;
-  ClientPlayer.inventory.inventory[0].Item.type = CRAFTER;
-  ClientPlayer.inventory.inventory[0].amount = 1;
+  ClientPlayer.inventory.inventory[0].Item.type = NORMALFENCE;
+  ClientPlayer.inventory.inventory[0].amount = 16;
   int avgH = (int)b.getHeight()/2;
   int screenW = GetScreenWidth();
   int screenH = GetScreenHeight();
@@ -120,7 +116,7 @@ int main()
           DrawRectangle(0, max(0, subsoloY), GetScreenWidth(), max(0, alturaRetangulo), {104, 61, 40, 255});
       }
 
-      b.update(ClientPlayer.layer, camX, camY, ClientPlayer.inventory, time);
+      b.update(ClientPlayer.layer, ClientPlayer.x, ClientPlayer.y, ClientPlayer.inventory, time);
       b.updateBlocks(camX, camY);
       ClientPlayer.update(b, pb);
 
