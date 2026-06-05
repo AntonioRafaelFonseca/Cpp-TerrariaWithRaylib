@@ -29,6 +29,7 @@ class Blocks
   int height = 200;
   bool loading = true;
   bool call = false;
+  bool updated = false;
   void setup()
   {
     loading = true;
@@ -90,6 +91,11 @@ class Blocks
   }
   void draw(int px, int py)
   {
+    if(!this->updated)
+    {
+      QUICKupdateBrightness(px, py);
+      updated = true;
+    }
     DrawTextureEx(Textures::TextureBackground, {(float)0-px/2, (float)700-py/2}, 0.0f, 3, {170, 170, 245, 255});
     for(int y=0;y<getHeight();y++)
     {
@@ -120,7 +126,7 @@ class Blocks
     
   }
   
-  void update(LayerIndex li, int pX, int pY, Inventory& inv, int& time)
+  void update(LayerIndex li, int pX, int pY, Inventory& inv, int& time, int& life)
 {
   if(this->call)
   {
@@ -220,12 +226,39 @@ class Blocks
             {
                 if (li == 'f' && peek(xindex, yindex).type == AIR)
                 {
-                    if (inv.inventory[inv.selected].Item.type != NONE)
-                    {
-                        peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
-                        inv.inventory[inv.selected].amount -= 1;
-                        QUICKupdateBrightness(px, py);
-                    }
+                  if (inv.inventory[inv.selected].Item.type != NONE && inv.inventory[inv.selected].Item.type != FOOD)
+                  {
+                      peek(xindex, yindex).type = inv.inventory[inv.selected].Item.type;
+                      inv.inventory[inv.selected].amount -= 1;
+                      QUICKupdateBrightness(px, py);
+                  }
+                  else // Empty hand: attack entities
+                  {
+                      for (auto& e : this->Entities)
+                      {
+                          // FIX: Calculate screen positions using camera coordinates (px, py)
+                          int Bx = (int)e.x - px; 
+                          int By = (int)e.y - py;
+                          
+                          if (inbounds(mouseX, Bx, Bx + 32) && inbounds(mouseY, By, By + 32)) 
+                          {
+                            if(time % 7 != 0) continue;
+                              e.damage = true;
+                              e.life--;
+                              
+                              if (e.life <= 0) 
+                              {
+                                  int foodIndex = getInventoryIndexByType(FOOD, inv);
+                                  if (foodIndex != 255) // Ensure we actually found a valid slot
+                                  {
+                                      // FIX: Changed '==' to '=' to actually assign the type
+                                      inv.inventory[foodIndex].Item.type = FOOD; 
+                                      inv.inventory[foodIndex].amount++;
+                                  }
+                              }
+                          }
+                      }
+                  }
                 }
                 else if (li == 'b' && peekBackLayer(xindex, yindex).type == AIR)
                 {
@@ -261,9 +294,19 @@ class Blocks
             }
           }
         }
+        
     if (IsKeyPressed(KEY_LEFT))  inv.selected--;
     if (IsKeyPressed(KEY_RIGHT)) inv.selected++;
+    if(IsKeyPressed(KEY_E))
+    {
+      if(life < 10 && inv.inventory[inv.selected].Item.type == FOOD)
+      {
+        life++;
+        inv.inventory[inv.selected].amount--;
+      }
+    }
   if(mousePressedLeft || mousePressedRight) updateBlocks(px, py);
+  updateInventory(inv);
   }
   void updateBlocks(int px=0, int py=0)
   {

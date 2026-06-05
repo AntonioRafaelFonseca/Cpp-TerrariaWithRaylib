@@ -1,15 +1,15 @@
 #pragma once
 #include <vector>
 #include "raylib.h"
-#include "block.hpp" // O Player precisa de saber o que é o Block!
+#include "block.hpp"
 
 class Player
 {
 public:
-  float x = 3*32;
-  float y = 2000;
+  float x = rand()%500*32;
+  float y = 100*32;
   float vy = 0;
-  int life = 10;
+  int life = 11;
   int max_life = 10;
   float G = 1.0f;
   Inventory inventory;
@@ -18,7 +18,6 @@ public:
 
   void update(Blocks& b, unsigned char& pb)
   {
-    if(IsKeyDown(KEY_P)) b.Entities.push_back(Entity(COCK, this->x, this->y));
     
     if(IsKeyPressed(KEY_UP))
     {

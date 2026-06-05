@@ -45,7 +45,7 @@ void drawPlayer(Player& p, unsigned char pb)
   {
     DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), RED);
   }
-  if(p.layer == 'b') DrawText("Current Layer: Back Layer", 16, 16, 32, BLACK); else DrawText("Current Layer: Front Layer", 16, 16, 16, BLACK);
+  if(p.layer == 'b') DrawText("Current Layer: Back Layer", 16, 16, 16, BLACK); else DrawText("Current Layer: Front Layer", 16, 16, 16, BLACK);
   DrawRectangle(GetScreenWidth() / 2, (GetScreenHeight() / 2)-2, 32, 5, GRAY);
   DrawRectangle(GetScreenWidth() / 2, (GetScreenHeight() / 2)-2, p.life*32/p.max_life, 5, RED);
 }
@@ -75,36 +75,29 @@ int min(int a, int b) {
 int main()
 {
   InitWindow(GetScreenWidth(), GetScreenHeight(), "main");
-  // ToggleFullscreen();
+  ToggleFullscreen();
   Textures::LoadAll();
-  GameState GS = RUNNING;
+  GameState GS = MENU;
   Blocks b;
   Player ClientPlayer;
   SetTargetFPS(30);
   unsigned char pb;
-  ClientPlayer.inventory.inventory[0].Item.type = NORMALFENCE;
-  ClientPlayer.inventory.inventory[0].amount = 16;
+  ClientPlayer.inventory.inventory[0].Item.type = CRAFTER;
+  ClientPlayer.inventory.inventory[0].amount = 1;
   int avgH = (int)b.getHeight()/2;
   int screenW = GetScreenWidth();
   int screenH = GetScreenHeight();
   bool started = false;
   int time = 0;
-  while (!WindowShouldClose())
+  b.setup();
+  while (GS != NOT_RUNING)
   {
+    if(WindowShouldClose()) GS = NOT_RUNING;
     
     BeginDrawing();
-    ClearBackground({66, 162, 214, 255});
-    if(b.loading)
+    if (GS == RUNNING)
     {
-      if(!started)
-      {
-        b.setup();
-        started = 0b00000001;
-      }
-      DrawText("Loading...", 100, 100, 25, BLACK);
-    }
-    else
-    {
+      ClearBackground({66, 162, 214, 255});
       time++;
       int camX = ClientPlayer.x - (GetScreenWidth() / 2);
       int camY = ClientPlayer.y - (GetScreenHeight() / 2);
@@ -116,17 +109,32 @@ int main()
           DrawRectangle(0, max(0, subsoloY), GetScreenWidth(), max(0, alturaRetangulo), {104, 61, 40, 255});
       }
 
-      b.update(ClientPlayer.layer, ClientPlayer.x, ClientPlayer.y, ClientPlayer.inventory, time);
+      b.update(ClientPlayer.layer, ClientPlayer.x, ClientPlayer.y, ClientPlayer.inventory, time, ClientPlayer.life);
       b.updateBlocks(camX, camY);
       ClientPlayer.update(b, pb);
 
       b.draw(camX, camY);
       drawEntities(b, ClientPlayer);
       drawPlayer(ClientPlayer, pb);
+      if(IsKeyPressed(KEY_P)) GS = PAUSED;
     }
-    DrawFPS(100, 100);
+    else if(GS == PAUSED)
+    {
+      DrawTexture(Textures::TexturePause, 100, 100, {255, 255, 255, 200});
+      if(IsKeyPressed(KEY_P)) GS = RUNNING;
+    }
+    else if (GS == MENU)
+    {
+      ClearBackground({66, 162, 214, 255});
+      DrawTextEx(GetFontDefault(), "Eartharia", (Vector2){GetScreenWidth()/2, GetScreenHeight()/2}, 32, 5, GREEN);
+      DrawTextEx(GetFontDefault(), "Press 's' to start", (Vector2){GetScreenWidth()/2, GetScreenHeight()/2+32}, 16, 5, DARKGREEN);
+      if(IsKeyPressed(KEY_S)) GS = RUNNING;
+    }
+    DrawFPS(10, 30);
     EndDrawing();
   }
+
   Textures::UnloadAll();
+  CloseWindow();
   return 0;
 }

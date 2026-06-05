@@ -11,12 +11,14 @@ static inline Texture2D TextureCock;
 static inline Texture2D TextureConectedfence;
 static inline Texture2D TextureCrafter;
 static inline Texture2D TextureDirt;
+static inline Texture2D TextureFood;
 static inline Texture2D TextureGrass;
 static inline Texture2D TextureHeart0;
 static inline Texture2D TextureHeart1;
 static inline Texture2D TextureLeaf;
 static inline Texture2D TextureNo;
 static inline Texture2D TextureNormalfence;
+static inline Texture2D TexturePause;
 static inline Texture2D TexturePlayer;
 static inline Texture2D TextureSlot;
 static inline Texture2D TextureSlotarrow;
@@ -33,12 +35,14 @@ TextureCock = LoadTexture("imgs/CockTexture.png");
 TextureConectedfence = LoadTexture("imgs/ConectedFence.png");
 TextureCrafter = LoadTexture("imgs/CrafterTexture.png");
 TextureDirt = LoadTexture("imgs/DirtTexture.png");
+TextureFood = LoadTexture("imgs/FoodTexture.png");
 TextureGrass = LoadTexture("imgs/GrassTexture.png");
 TextureHeart0 = LoadTexture("imgs/heart0.png");
 TextureHeart1 = LoadTexture("imgs/heart1.png");
 TextureLeaf = LoadTexture("imgs/LeafTexture.png");
 TextureNo = LoadTexture("imgs/NO.png");
 TextureNormalfence = LoadTexture("imgs/NormalFence.png");
+TexturePause = LoadTexture("imgs/Pause.png");
 TexturePlayer = LoadTexture("imgs/PlayerTexture.png");
 TextureSlot = LoadTexture("imgs/Slot.png");
 TextureSlotarrow = LoadTexture("imgs/SlotArrowTexture.png");
@@ -56,12 +60,14 @@ UnloadTexture(TextureCock);
 UnloadTexture(TextureConectedfence);
 UnloadTexture(TextureCrafter);
 UnloadTexture(TextureDirt);
+UnloadTexture(TextureFood);
 UnloadTexture(TextureGrass);
 UnloadTexture(TextureHeart0);
 UnloadTexture(TextureHeart1);
 UnloadTexture(TextureLeaf);
 UnloadTexture(TextureNo);
 UnloadTexture(TextureNormalfence);
+UnloadTexture(TexturePause);
 UnloadTexture(TexturePlayer);
 UnloadTexture(TextureSlot);
 UnloadTexture(TextureSlotarrow);
@@ -94,6 +100,10 @@ inline Texture2D getTextureByType(BlockType type){
     else if (type == BlockType::DIRT)
     {
         return Textures::TextureDirt;
+    }
+    else if (type == BlockType::FOOD)
+    {
+        return Textures::TextureFood;
     }
     else if (type == BlockType::GRASS)
     {

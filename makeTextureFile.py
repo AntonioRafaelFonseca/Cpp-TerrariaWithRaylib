@@ -15,7 +15,8 @@ types = [
   'COAL',
   'WoodenPlank'.upper(),
   'NORMALFENCE',
-  'CONECTEDFENCE'
+  'CONECTEDFENCE',
+  'FOOD'
   ]
 
 arr.append('#pragma once\n#include "raylib.h"\n#include "block_type.hpp"\n')

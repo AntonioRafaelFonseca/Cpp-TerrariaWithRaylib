@@ -15,7 +15,8 @@ enum BlockType : unsigned char
   COAL,
   WOODENPLANK,
   NORMALFENCE,
-  CONECTEDFENCE
+  CONECTEDFENCE,
+  FOOD
 };
 
 enum LightSourceType : unsigned char
