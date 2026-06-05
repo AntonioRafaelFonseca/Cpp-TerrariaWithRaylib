@@ -28,6 +28,7 @@ jobs:
 
     - name: Compilar o Jogo
       run: |
+        cd Terraria
         # Cria a pasta 'linux' se ela não existir
         mkdir -p linux
         

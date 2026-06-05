@@ -18,6 +18,7 @@ jobs:
     - name: Compilar o Jogo
       run: |
         # Cria a pasta 'mac' na máquina virtual se ela não existir
+        cd Terraria
         mkdir -p mac
         
         g++ -O3 -std=c++20 main.cpp \ entity.cpp \
