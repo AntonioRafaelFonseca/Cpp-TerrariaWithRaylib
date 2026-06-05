@@ -17,7 +17,6 @@ jobs:
 
     - name: Compilar o Jogo
       run: |
-        cd Terraria
         mkdir -p mac
         g++ -O3 -std=c++20 main.cpp entity.cpp \
         -I/opt/homebrew/include \
@@ -33,4 +32,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: TerrariaDoToinoMacOS
-        path: Terraria/mac/meu_jogo_mac
+        path: mac/meu_jogo_mac
